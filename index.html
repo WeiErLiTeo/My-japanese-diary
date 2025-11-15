@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语学习日记 | 每日记录</title>
+    <!-- 加载 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入自定义样式和动画 -->
+    <style>
+        /* 使用更适合的字体，Inter 是一个很棒的现代字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            /* 流畅的背景渐变动画 */
+            background: linear-gradient(120deg, #1e0033, #3f004a, #1a0b38);
+            background-size: 200% 200%;
+            animation: gradientBG 20s ease infinite;
+        }
+
+        /* 渐变动画 */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* "玻璃拟态" 卡片样式 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05); /* 半透明背景 */
+            backdrop-filter: blur(12px); /* 关键的毛玻璃效果 */
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1); /* 微妙的边框 */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 平滑过渡 */
+        }
+        .glass-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 标签栏激活状态 */
+        .tab-button.active {
+            color: white;
+            background-color: #8B5CF6; /* 紫色 */
+        }
+
+        /* 表单输入框样式 */
+        .form-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: #8B5CF6; /* 焦点时紫色 */
+            box-shadow: 0 0 0 2px #8B5CF6;
+        }
+
+        /* 渐变按钮 */
+        .btn-gradient {
+            background-image: linear-gradient(to right, #8B5CF6 0%, #EC4899 51%, #8B5CF6 100%);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .btn-gradient:hover {
+            background-position: right center; /* 悬停时渐变移动 */
+        }
+        .btn-gradient:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-image: none;
+            background-color: #374151;
+        }
+
+        /* 卡片淡入动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .summary-card {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* 简单的加载动画 */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #FFF;
+            border-bottom-color: #8B5CF6;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen p-4 md:p-8">
+
+    <!-- 1. 页面标题 -->
+    <header class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
+            🌸 我的日语学习日记 🌸
+        </h1>
+        <p class="text-lg text-gray-300 mt-2">日々の記録、未来への投資。</p>
+    </header>
+
+    <main class="max-w-4xl mx-auto">
+        <!-- 2. 标签页切换 -->
+        <div class="flex justify-center mb-8 bg-gray-800/50 rounded-lg p-1 max-w-sm mx-auto">
+            <button id="tab-view" class="tab-button active w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">查看总结</button>
+            <button id="tab-submit" class="tab-button w-1/2 py-2 px-4 rounded-md font-medium text-gray-400 transition-all duration-300">提交新总结</button>
+        </div>
+
+        <!-- 3. 内容区域 -->
+        <div>
+            <!-- 3.1 查看总结 (默认显示) -->
+            <section id="section-view">
+                <div id="loading-spinner" class="text-center py-10">
+                    <div class="loader mx-auto"></div>
+                    <p class="mt-4 text-gray-400">正在加载日记...</p>
+                </div>
+                <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 总结卡片将在这里动态插入 -->
+                    <!-- 示例卡片:
+                    <div class="summary-card glass-card rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-400 mb-2">2023年10月27日</p>
+                        <p class="text-gray-100 whitespace-pre-line">今天学习了 N2 语法「～ものだから」，感觉很有趣。</p>
+                        <p class="mt-4 text-sm text-purple-300">老师鼓励：素晴らしい！その調子で頑張って！</p>
+                    </div>
+                    -->
+                </div>
+                <p id="no-summaries" class="hidden text-center text-gray-400 py-10">还没有日记哦，快去“提交新总结”吧！</p>
+            </section>
+
+            <!-- 3.2 提交总结 (默认隐藏) -->
+            <section id="section-submit" class="hidden">
+                <div class="glass-card rounded-xl p-6 md:p-10 shadow-lg max-w-lg mx-auto">
+                    <form id="summary-form">
+                        <h2 class="text-2xl font-semibold text-center mb-6">📝 记录今日所学</h2>
+                        
+                        <div class="mb-5">
+                            <label for="admin-password" class="block text-sm font-medium text-gray-300 mb-2">🔑 管理员密码</label>
+                            <input type="password" id="admin-password" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="请输入您的安全密码" required>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="summary-content" class="block text-sm font-medium text-gray-300 mb-2">📖 学习内容</label>
+                            <textarea id="summary-content" rows="6" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="例如：今天学习了... 掌握了... 遇到的问题是..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" id="submit-button" class="btn-gradient w-full text-white font-bold py-3 px-6 rounded-lg text-lg">
+                            <span>提交总结</span>
+                        </button>
+                        
+                        <div id="form-message" class="mt-4 text-center"></div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="text-center text-gray-500 mt-16 pb-8">
+        <p>&copy; 2025 由 Gemini 强力驱动</p>
+    </footer>
+
+    <!-- 4. 核心 JavaScript 逻辑 -->
+    <script>
+        // 等待 DOM 加载完成
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 获取元素 ---
+            const tabView = document.getElementById('tab-view');
+            const tabSubmit = document.getElementById('tab-submit');
+            const sectionView = document.getElementById('section-view');
+            const sectionSubmit = document.getElementById('section-submit');
+            
+            const summaryForm = document.getElementById('summary-form');
+            const submitButton = document.getElementById('submit-button');
+            const formMessage = document.getElementById('form-message');
+            const passwordInput = document.getElementById('admin-password');
+            const contentInput = document.getElementById('summary-content');
+            
+            const summaryGrid = document.getElementById('summary-grid');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const noSummaries = document.getElementById('no-summaries');
+
+            // --- 标签页切换逻辑 ---
+            function showViewSection() {
+                sectionView.classList.remove('hidden');
+                sectionSubmit.classList.add('hidden');
+                tabView.classList.add('active', 'text-white');
+                tabSubmit.classList.remove('active', 'text-white');
+                tabSubmit.classList.add('text-gray-400');
+                // 切换时重新加载总结
+                loadSummaries();
+            }
+            
+            function showSubmitSection() {
+                sectionView.classList.add('hidden');
+                sectionSubmit.classList.remove('hidden');
+                tabView.classList.remove('active', 'text-white');
+                tabView.classList.add('text-gray-400');
+                tabSubmit.classList.add('active', 'text-white');
+            }
+
+            tabView.addEventListener('click', showViewSection);
+            tabSubmit.addEventListener('click', showSubmitSection);
+
+            // --- 加载总结逻辑 ---
+            async function loadSummaries() {
+                loadingSpinner.classList.remove('hidden');
+                summaryGrid.innerHTML = ''; // 清空旧内容
+                noSummaries.classList.add('hidden');
+
+                // --- 本地预览模拟 ---
+                // 检查是否在本地预览环境 (如 blob: URL 或 file: URL)
+                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
+                    console.log("本地预览模式：正在加载模拟数据...");
+                    
+                    // 模拟网络延迟
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    const mockSummaries = [
+                        { 
+                            date: new Date().toISOString(), 
+                            summary: "【模拟数据】今天学习了 N2 语法「～ものだから」，感觉很有趣。", 
+                            gemini_response: "素晴らしい！その調子で頑張って！" 
+                        },
+                        { 
+                            date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+                            summary: "【模拟数据】复习了 N3 的动词变形，特别是「使役形」和「受身形」。", 
+                            gemini_response: "基本は大事ですね。よくできました！"
+                        }
+                    ];
+
+                    if (mockSummaries.length === 0) {
+                        noSummaries.classList.remove('hidden');
+                    } else {
+                        mockSummaries.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
+                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
+                                year: 'numeric', month: 'long', day: 'numeric',
+                                hour: 'numeric', minute: 'numeric'
+                            });
+                            card.innerHTML = `
+                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
+                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
+                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
+                            `;
+                            summaryGrid.appendChild(card);
+                        });
+                    }
+                    loadingSpinner.classList.add('hidden');
+                    return; // 结束函数，不执行下面的真实 fetch
+                }
+                
+                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
+                try {
+                    // 这是 Netlify 函数的 "神奇" 路径
+                    const response = await fetch('/.netlify/functions/getSummaries');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const summaries = await response.json();
+                    
+                    if (summaries.length === 0) {
+                        noSummaries.classList.remove('hidden');
+                    } else {
+                        // 按日期倒序显示
+                        summaries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        
+                        summaries.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
+                            
+                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: 'numeric'
+                            });
+                            
+                            card.innerHTML = `
+                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
+                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
+                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
+                            `;
+                            summaryGrid.appendChild(card);
+                        });
+                    }
+                } catch (error) {
+                    console.error('加载总结失败:', error);
+                    noSummaries.textContent = '❌ 加载日记失败，请稍后重试。';
+                    noSummaries.classList.remove('hidden');
+                } finally {
+                    loadingSpinner.classList.add('hidden');
+                }
+            }
+
+            // --- 表单提交逻辑 ---
+            summaryForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // 阻止表单默认提交
+                
+                const password = passwordInput.value;
+                const summary = contentInput.value;
+                
+                // 禁用按钮并显示加载中
+                submitButton.disabled = true;
+                submitButton.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
+                formMessage.textContent = '';
+                formMessage.className = 'mt-4 text-center';
+
+                // --- 本地预览模拟 ---
+                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
+                    console.log("本地预览模式：正在模拟提交...");
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // 模拟提交延迟
+                    
+                    // 模拟成功
+                    formMessage.textContent = '🎉 【模拟】提交成功！';
+                    formMessage.classList.add('text-green-400');
+                    contentInput.value = ''; // 清空输入框
+                    
+                    // 2秒后自动切换回查看页面
+                    setTimeout(() => {
+                        showViewSection();
+                        formMessage.textContent = '';
+                    }, 2000);
+
+                    // 恢复按钮
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<span>提交总结</span>';
+                    return; // 结束函数，不执行真实 fetch
+                }
+
+                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
+                try {
+                    // 调用 "submitSummary" 后端函数
+                    const response = await fetch('/.netlify/functions/submitSummary', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password, summary })
+                    });
+                    
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        // 处理后端返回的错误（如密码错误）
+                        throw new Error(result.error || '提交失败');
+                    }
+                    
+                    // 成功!
+                    formMessage.textContent = '🎉 提交成功！已生成 AI 点评。';
+                    formMessage.classList.add('text-green-400');
+                    contentInput.value = ''; // 清空输入框
+                    
+                    // 2秒后自动切换回查看页面
+                    setTimeout(() => {
+                        showViewSection();
+                        formMessage.textContent = '';
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('提交失败:', error);
+                    formMessage.textContent = `❌ 失败: ${error.message}`;
+                    formMessage.classList.add('text-red-400');
+                } finally {
+                    // 恢复按钮
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<span>提交总结</span>';
+                }
+            });
+
+            // --- 初始加载 ---
+            loadSummaries();
+        });
+    </script>
+</body>
+</html>
