@@ -8,45 +8,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入自定义样式和动画 -->
     <style>
-        /* 使用更适合的字体，Inter 是一个很棒的现代字体 */
+        /* (样式表...与之前相同，未作修改) */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        
         body {
             font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            /* 流畅的背景渐变动画 */
             background: linear-gradient(120deg, #1e0033, #3f004a, #1a0b38);
             background-size: 200% 200%;
             animation: gradientBG 20s ease infinite;
         }
-
-        /* 渐变动画 */
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
-        /* "玻璃拟态" 卡片样式 */
         .glass-card {
-            background: rgba(255, 255, 255, 0.05); /* 半透明背景 */
-            backdrop-filter: blur(12px); /* 关键的毛玻璃效果 */
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1); /* 微妙的边框 */
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 平滑过渡 */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .glass-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
             border-color: rgba(255, 255, 255, 0.2);
         }
-
-        /* 标签栏激活状态 */
         .tab-button.active {
             color: white;
-            background-color: #8B5CF6; /* 紫色 */
+            background-color: #8B5CF6;
         }
-
-        /* 表单输入框样式 */
         .form-input {
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -54,18 +44,16 @@
         }
         .form-input:focus {
             background: rgba(0, 0, 0, 0.3);
-            border-color: #8B5CF6; /* 焦点时紫色 */
+            border-color: #8B5CF6;
             box-shadow: 0 0 0 2px #8B5CF6;
         }
-
-        /* 渐变按钮 */
         .btn-gradient {
             background-image: linear-gradient(to right, #8B5CF6 0%, #EC4899 51%, #8B5CF6 100%);
             background-size: 200% auto;
             transition: 0.5s;
         }
         .btn-gradient:hover {
-            background-position: right center; /* 悬停时渐变移动 */
+            background-position: right center;
         }
         .btn-gradient:disabled {
             opacity: 0.5;
@@ -73,8 +61,23 @@
             background-image: none;
             background-color: #374151;
         }
+        
+        /* 【修改】删除按钮的渐变（红色系） */
+        .btn-gradient-delete {
+            background-image: linear-gradient(to right, #EF4444 0%, #EC4899 51%, #EF4444 100%);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .btn-gradient-delete:hover {
+            background-position: right center;
+        }
+        .btn-gradient-delete:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-image: none;
+            background-color: #374151;
+        }
 
-        /* 卡片淡入动画 */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -82,8 +85,6 @@
         .summary-card {
             animation: fadeIn 0.5s ease-out forwards;
         }
-
-        /* 简单的加载动画 */
         .loader {
             width: 48px;
             height: 48px;
@@ -102,7 +103,7 @@
 </head>
 <body class="text-gray-100 min-h-screen p-4 md:p-8">
 
-    <!-- 1. 页面标题 -->
+    <!-- (页面标题...与之前相同) -->
     <header class="text-center mb-10">
         <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
             🌸 我的日语学习日记 🌸
@@ -111,7 +112,7 @@
     </header>
 
     <main class="max-w-4xl mx-auto">
-        <!-- 2. 标签页切换 -->
+        <!-- (标签页切换...与之前相同) -->
         <div class="flex justify-center mb-8 bg-gray-800/50 rounded-lg p-1 max-w-sm mx-auto">
             <button id="tab-view" class="tab-button active w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">查看总结</button>
             <button id="tab-submit" class="tab-button w-1/2 py-2 px-4 rounded-md font-medium text-gray-400 transition-all duration-300">提交新总结</button>
@@ -121,19 +122,14 @@
         <div>
             <!-- 3.1 查看总结 (默认显示) -->
             <section id="section-view">
+                <div id="delete-message" class="text-center mb-4"></div>
+                
                 <div id="loading-spinner" class="text-center py-10">
                     <div class="loader mx-auto"></div>
                     <p class="mt-4 text-gray-400">正在加载日记...</p>
                 </div>
                 <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 总结卡片将在这里动态插入 -->
-                    <!-- 示例卡片:
-                    <div class="summary-card glass-card rounded-xl p-6 shadow-lg">
-                        <p class="text-sm text-gray-400 mb-2">2023年10月27日</p>
-                        <p class="text-gray-100 whitespace-pre-line">今天学习了 N2 语法「～ものだから」，感觉很有趣。</p>
-                        <p class="mt-4 text-sm text-purple-300">老师鼓励：素晴らしい！その調子で頑張って！</p>
-                    </div>
-                    -->
+                    <!-- (卡片示例...与之前相同) -->
                 </div>
                 <p id="no-summaries" class="hidden text-center text-gray-400 py-10">还没有日记哦，快去“提交新总结”吧！</p>
             </section>
@@ -147,6 +143,8 @@
                         <div class="mb-5">
                             <label for="admin-password" class="block text-sm font-medium text-gray-300 mb-2">🔑 管理员密码</label>
                             <input type="password" id="admin-password" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="请输入您的安全密码" required>
+                             <!-- 【修改】密码提示文字已更改 -->
+                            <p class="text-xs text-gray-400 mt-1">（提交日记时需要）</p>
                         </div>
                         
                         <div class="mb-6">
@@ -165,13 +163,41 @@
         </div>
     </main>
 
+    <!-- 【新增】删除确认模态框 -->
+    <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <!-- 1. 遮罩层 -->
+        <div id="modal-overlay" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        
+        <!-- 2. 模态框内容 -->
+        <div class_name="glass-card rounded-xl p-6 md:p-8 shadow-lg max-w-sm w-full z-10" style="animation: fadeIn 0.3s ease-out forwards;">
+            <h3 class="text-2xl font-semibold text-center mb-5">🗑️ 确认删除</h3>
+            <p class="text-gray-300 text-center mb-6">您确定要删除这条日记吗？此操作无法撤销。</p>
+            
+            <div class="mb-5">
+                <label for="delete-password" class="block text-sm font-medium text-gray-300 mb-2">🔑 管理员密码</label>
+                <input type="password" id="delete-password" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="请输入密码以确认删除" required>
+            </div>
+            
+            <div id="modal-message" class="mt-4 text-center text-red-400 h-6"></div>
+            
+            <div class="flex gap-4 mt-6">
+                <button id="modal-cancel-btn" class="w-1/2 py-3 px-4 rounded-lg font-medium text-gray-300 bg-gray-700/60 hover:bg-gray-600/60 transition-colors">
+                    取消
+                </button>
+                <button id="modal-confirm-btn" class="btn-gradient-delete w-1/2 text-white font-bold py-3 px-4 rounded-lg text-lg">
+                    <span>确认删除</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <footer class="text-center text-gray-500 mt-16 pb-8">
         <p>&copy; 2025 由 Gemini 强力驱动</p>
     </footer>
 
     <!-- 4. 核心 JavaScript 逻辑 -->
     <script>
-        // 等待 DOM 加载完成
         document.addEventListener('DOMContentLoaded', () => {
             
             // --- 获取元素 ---
@@ -189,6 +215,24 @@
             const summaryGrid = document.getElementById('summary-grid');
             const loadingSpinner = document.getElementById('loading-spinner');
             const noSummaries = document.getElementById('no-summaries');
+            const deleteMessage = document.getElementById('delete-message');
+
+            // --- 【新增】获取模态框元素 ---
+            const deleteModal = document.getElementById('delete-modal');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalCancelBtn = document.getElementById('modal-cancel-btn');
+            const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+            const modalPasswordInput = document.getElementById('delete-password');
+            const modalMessage = document.getElementById('modal-message');
+
+            // --- 【新增】用于存储待删除信息的变量 ---
+            let entryIdToDelete = null;
+            let cardElementToDelete = null;
+
+            const trashIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4H2.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+            </svg>`;
 
             // --- 标签页切换逻辑 ---
             function showViewSection() {
@@ -197,7 +241,6 @@
                 tabView.classList.add('active', 'text-white');
                 tabSubmit.classList.remove('active', 'text-white');
                 tabSubmit.classList.add('text-gray-400');
-                // 切换时重新加载总结
                 loadSummaries();
             }
             
@@ -212,91 +255,60 @@
             tabView.addEventListener('click', showViewSection);
             tabSubmit.addEventListener('click', showSubmitSection);
 
-            // --- 加载总结逻辑 ---
+            // --- 【新增】模态框控制函数 ---
+            function openDeleteModal(entryId, cardElement) {
+                entryIdToDelete = entryId;
+                cardElementToDelete = cardElement;
+                deleteModal.classList.remove('hidden');
+                // 自动聚焦到密码输入框
+                setTimeout(() => modalPasswordInput.focus(), 50); 
+            }
+
+            function closeDeleteModal() {
+                deleteModal.classList.add('hidden');
+                modalPasswordInput.value = ''; // 清空密码
+                modalMessage.textContent = ''; // 清空错误消息
+                entryIdToDelete = null;
+                cardElementToDelete = null;
+                // 恢复按钮状态
+                modalConfirmBtn.disabled = false;
+                modalConfirmBtn.innerHTML = '<span>确认删除</span>';
+            }
+
+            // 【新增】模态框按钮事件
+            modalOverlay.addEventListener('click', closeDeleteModal);
+            modalCancelBtn.addEventListener('click', closeDeleteModal);
+
+            // --- (加载总结逻辑...与之前相同) ---
             async function loadSummaries() {
                 loadingSpinner.classList.remove('hidden');
-                summaryGrid.innerHTML = ''; // 清空旧内容
+                summaryGrid.innerHTML = ''; 
                 noSummaries.classList.add('hidden');
+                deleteMessage.textContent = ''; 
 
-                // --- 本地预览模拟 ---
-                // 检查是否在本地预览环境 (如 blob: URL 或 file: URL)
+                // (本地预览模拟...)
                 if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                     console.log("本地预览模式：正在加载模拟数据...");
-                    
-                    // 模拟网络延迟
                     await new Promise(resolve => setTimeout(resolve, 1000));
-
                     const mockSummaries = [
-                        { 
-                            date: new Date().toISOString(), 
-                            summary: "【模拟数据】今天学习了 N2 语法「～ものだから」，感觉很有趣。", 
-                            gemini_response: "素晴らしい！その調子で頑張って！" 
-                        },
-                        { 
-                            date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-                            summary: "【模拟数据】复习了 N3 的动词变形，特别是「使役形」和「受身形」。", 
-                            gemini_response: "基本は大事ですね。よくできました！"
-                        }
+                        { date: new Date().toISOString(), summary: "【模拟数据】...", gemini_response: "..." },
+                        { date: new Date(Date.now() - 86400000).toISOString(), summary: "【模拟数据】...", gemini_response: "..." }
                     ];
-
-                    if (mockSummaries.length === 0) {
-                        noSummaries.classList.remove('hidden');
-                    } else {
-                        mockSummaries.forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
-                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
-                                year: 'numeric', month: 'long', day: 'numeric',
-                                hour: 'numeric', minute: 'numeric'
-                            });
-                            card.innerHTML = `
-                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
-                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
-                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
-                            `;
-                            summaryGrid.appendChild(card);
-                        });
-                    }
+                    if (mockSummaries.length === 0) { noSummaries.classList.remove('hidden'); } 
+                    else { mockSummaries.forEach(item => { createCard(item); }); }
                     loadingSpinner.classList.add('hidden');
-                    return; // 结束函数，不执行下面的真实 fetch
+                    return; 
                 }
                 
-                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
+                // (真实的 Netlify Fetch...)
                 try {
-                    // 这是 Netlify 函数的 "神奇" 路径
                     const response = await fetch('/.netlify/functions/getSummaries');
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
+                    if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
                     const summaries = await response.json();
-                    
-                    if (summaries.length === 0) {
-                        noSummaries.classList.remove('hidden');
-                    } else {
-                        // 按日期倒序显示
+                    if (summaries.length === 0) { noSummaries.classList.remove('hidden'); } 
+                    else {
                         summaries.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        
-                        summaries.forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
-                            
-                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: 'numeric'
-                            });
-                            
-                            card.innerHTML = `
-                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
-                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
-                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
-                            `;
-                            summaryGrid.appendChild(card);
-                        });
+                        summaries.forEach(item => { createCard(item); });
                     }
                 } catch (error) {
                     console.error('加载总结失败:', error);
@@ -307,77 +319,151 @@
                 }
             }
 
-            // --- 表单提交逻辑 ---
+            // 【新增】创建卡片的辅助函数
+            function createCard(item) {
+                const card = document.createElement('div');
+                card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg relative';
+                const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: 'numeric', minute: 'numeric'
+                });
+                card.innerHTML = `
+                    <button class="delete-btn absolute top-3 right-3 text-gray-500 hover:text-red-400 transition-colors z-10" data-id="${item.date}" title="删除此条目">
+                        ${trashIconSvg}
+                    </button>
+                    <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
+                    <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
+                    ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
+                `;
+                summaryGrid.appendChild(card);
+            }
+
+            // --- (表单提交逻辑...与之前相同) ---
             summaryForm.addEventListener('submit', async (e) => {
-                e.preventDefault(); // 阻止表单默认提交
-                
+                e.preventDefault(); 
                 const password = passwordInput.value;
                 const summary = contentInput.value;
                 
-                // 禁用按钮并显示加载中
                 submitButton.disabled = true;
                 submitButton.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
                 formMessage.textContent = '';
                 formMessage.className = 'mt-4 text-center';
 
-                // --- 本地预览模拟 ---
+                // (本地预览模拟...)
                 if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                     console.log("本地预览模式：正在模拟提交...");
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // 模拟提交延迟
-                    
-                    // 模拟成功
+                    await new Promise(resolve => setTimeout(resolve, 1500)); 
                     formMessage.textContent = '🎉 【模拟】提交成功！';
                     formMessage.classList.add('text-green-400');
-                    contentInput.value = ''; // 清空输入框
-                    
-                    // 2秒后自动切换回查看页面
-                    setTimeout(() => {
-                        showViewSection();
-                        formMessage.textContent = '';
-                    }, 2000);
-
-                    // 恢复按钮
+                    contentInput.value = ''; 
+                    setTimeout(() => { showViewSection(); formMessage.textContent = ''; }, 2000);
                     submitButton.disabled = false;
                     submitButton.innerHTML = '<span>提交总结</span>';
-                    return; // 结束函数，不执行真实 fetch
+                    return;
                 }
 
-                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
+                // (真实的 Netlify Fetch...)
                 try {
-                    // 调用 "submitSummary" 后端函数
                     const response = await fetch('/.netlify/functions/submitSummary', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ password, summary })
                     });
-                    
                     const result = await response.json();
-
-                    if (!response.ok) {
-                        // 处理后端返回的错误（如密码错误）
-                        throw new Error(result.error || '提交失败');
-                    }
+                    if (!response.ok) { throw new Error(result.error || '提交失败'); }
                     
-                    // 成功!
                     formMessage.textContent = '🎉 提交成功！已生成 AI 点评。';
                     formMessage.classList.add('text-green-400');
-                    contentInput.value = ''; // 清空输入框
-                    
-                    // 2秒后自动切换回查看页面
-                    setTimeout(() => {
-                        showViewSection();
-                        formMessage.textContent = '';
-                    }, 2000);
-
+                    contentInput.value = ''; 
+                    setTimeout(() => { showViewSection(); formMessage.textContent = ''; }, 2000);
                 } catch (error) {
                     console.error('提交失败:', error);
                     formMessage.textContent = `❌ 失败: ${error.message}`;
                     formMessage.classList.add('text-red-400');
                 } finally {
-                    // 恢复按钮
                     submitButton.disabled = false;
                     submitButton.innerHTML = '<span>提交总结</span>';
                 }
+            });
+
+            // --- 【修改】删除按钮事件委托 ---
+            summaryGrid.addEventListener('click', (e) => {
+                const deleteButton = e.target.closest('.delete-btn');
+                if (!deleteButton) return;
+
+                const entryId = deleteButton.dataset.id;
+                const card = deleteButton.closest('.summary-card');
+                
+                // 打开模态框，而不是立即删除
+                openDeleteModal(entryId, card);
+            });
+
+            // --- 【新增】模态框确认删除逻辑 ---
+            modalConfirmBtn.addEventListener('click', async () => {
+                const password = modalPasswordInput.value;
+                
+                if (!password) {
+                    modalMessage.textContent = '请输入密码';
+                    return;
+                }
+                
+                if (!entryIdToDelete || !cardElementToDelete) return;
+
+                // 禁用按钮并显示加载
+                modalConfirmBtn.disabled = true;
+                modalConfirmBtn.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
+                modalMessage.textContent = '';
+
+                try {
+                    // --- 本地预览模拟 ---
+                    if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
+                        console.log(`本地预览：模拟删除 ID: ${entryIdToDelete}`);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        // if (password !== '123') throw new Error("模拟密码错误"); // 测试失败
+                    } else {
+                    // --- 真实的 Netlify Fetch ---
+                        const response = await fetch('/.netlify/functions/deleteSummary', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: entryIdToDelete, password: password })
+                        });
+                        const result = await response.json();
+                        if (!response.ok) {
+                            throw new Error(result.error || '删除失败');
+                        }
+                    }
+
+                    // --- 删除成功 ---
+                    deleteMessage.textContent = '✅ 删除成功！';
+                    deleteMessage.className = 'text-center text-green-400 mb-4';
+
+                    // 添加移除动画
+                    cardElementToDelete.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                    cardElementToDelete.style.opacity = '0';
+                    cardElementToDelete.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        cardElementToDelete.remove();
+                        if (summaryGrid.children.length === 0) {
+                            noSummaries.classList.remove('hidden');
+                        }
+                    }, 300);
+
+                    closeDeleteModal(); // 关闭模态框
+
+                } catch (error) {
+                    // --- 删除失败 ---
+                    console.error('删除失败:', error);
+                    // 在模态框内部显示错误
+                    modalMessage.textContent = `❌ 失败: ${error.message}`;
+                    // 恢复按钮，以便重试
+                    modalConfirmBtn.disabled = false;
+                    modalConfirmBtn.innerHTML = '<span>确认删除</span>';
+                }
+                
+                // 3秒后清除 "查看" 视图中的消息
+                setTimeout(() => {
+                    deleteMessage.textContent = '';
+                }, 3000);
             });
 
             // --- 初始加载 ---
