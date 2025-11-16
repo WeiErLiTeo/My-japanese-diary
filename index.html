@@ -8,14 +8,7 @@
     <style>
         /* (所有样式...与之前相同) */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        body {
-            font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(120deg, #1e0033, #3f004a, #1a0b38);
-            background-size: 200% 200%;
-            animation: gradientBG 20s ease infinite;
-            /* 【修改】默认隐藏主体内容，直到登录 */
-            overflow: hidden;
-        }
+        body { font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: linear-gradient(120deg, #1e0033, #3f004a, #1a0b38); background-size: 200% 200%; animation: gradientBG 20s ease infinite; overflow: hidden; }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .glass-card:hover { transform: translateY(-6px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); border-color: rgba(255, 255, 255, 0.2); }
@@ -32,34 +25,27 @@
         .summary-card { animation: fadeIn 0.5s ease-out forwards; }
         .loader { width: 48px; height: 48px; border: 3px solid #FFF; border-bottom-color: #8B5CF6; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* 【新增】登录蒙版淡入动画 */
-        @keyframes fadeInOverlay {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        /* 【新增】登录框上浮动画 */
-        @keyframes floatIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes floatIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-gray-100 min-h-screen p-4 md:p-8">
 
-    <!-- 【新增】登录蒙版 -->
+    <!-- 登录蒙版 -->
     <div id="login-mask" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="animation: fadeInOverlay 0.5s ease-out forwards;">
-        <!-- 遮罩背景 -->
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
         
-        <!-- 登录卡片 -->
         <div class="glass-card rounded-xl shadow-lg max-w-sm w-full z-10 p-6 md:p-10" style="animation: floatIn 0.6s ease-out 0.2s forwards; opacity: 0;">
-            <!-- 头像 -->
+            
+            <!-- 【修改】头像区域：添加了加载器 -->
             <div class="flex justify-center mb-6">
-                <img src="https://placehold.co/120x120/331a4a/a975ff?text=头像" 
-                     alt="头像" 
-                     class="rounded-full w-32 h-32 border-4 border-purple-400/50 shadow-lg"
-                     onerror="this.src='https://placehold.co/120x120/331a4a/a975ff?text=Avatar'">
+                <!-- 加载器 -->
+                <div id="avatar-loader" class="rounded-full w-32 h-32 border-4 border-purple-400/50 shadow-lg flex items-center justify-center bg-purple-900/50">
+                    <div class="loader" style="width: 40px; height: 40px; border-bottom-color: #FFF;"></div>
+                </div>
+                <!-- 图像（默认隐藏） -->
+                <img id="avatar-image" alt="头像" class="rounded-full w-32 h-32 border-4 border-purple-400/50 shadow-lg hidden"
+                     onerror="this.src='https://placehold.co/120x120/331a4a/a975ff?text=Avatar'; this.classList.remove('hidden'); document.getElementById('avatar-loader').classList.add('hidden');">
             </div>
             
             <h2 class="text-2xl font-semibold text-center text-gray-100 mb-6">管理员登录</h2>
@@ -77,7 +63,7 @@
         </div>
     </div>
 
-    <!-- 【修改】主内容区域，默认隐藏 -->
+    <!-- (主内容区域...与之前相同) -->
     <div id="main-content" class="hidden">
         <header class="text-center mb-10">
             <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
@@ -91,55 +77,44 @@
                 <button id="tab-view" class="tab-button active w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">查看总结</button>
                 <button id="tab-submit" class="tab-button w-1/2 py-2 px-4 rounded-md font-medium text-gray-400 transition-all duration-300">提交新总结</button>
             </div>
-
             <div>
                 <section id="section-view">
                     <div id="delete-message" class="text-center mb-4"></div>
                     <div id="loading-spinner" class="text-center py-10">
-                        <div class="loader mx-auto"></div>
-                        <p class="mt-4 text-gray-400">正在加载日记...</p>
+                        <div class="loader mx-auto"></div><p class="mt-4 text-gray-400">正在加载日记...</p>
                     </div>
                     <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                     <p id="no-summaries" class="hidden text-center text-gray-400 py-10">还没有日记哦，快去“提交新总结”吧！</p>
                 </section>
-
                 <section id="section-submit" class="hidden">
                     <div class="glass-card rounded-xl p-6 md:p-10 shadow-lg max-w-lg mx-auto">
                         <form id="summary-form">
                             <h2 class="text-2xl font-semibold text-center mb-6">📝 记录今日所学</h2>
-                            
-                            <!-- 【修改】移除了这里的密码框 -->
-                            
                             <div class="mb-6">
                                 <label for="summary-content" class="block text-sm font-medium text-gray-300 mb-2">📖 学习内容</label>
                                 <textarea id="summary-content" rows="6" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="例如：今天学习了... 掌握了... 遇到的问题是..." required></textarea>
                             </div>
-                            
                             <button type="submit" id="submit-button" class="btn-gradient w-full text-white font-bold py-3 px-6 rounded-lg text-lg">
                                 <span>提交总结</span>
                             </button>
-                            
                             <div id="form-message" class="mt-4 text-center"></div>
                         </form>
                     </div>
                 </section>
             </div>
         </main>
-
         <footer class="text-center text-gray-500 mt-16 pb-8">
             <p>&copy; 2025 由 Gemini 强力驱动</p>
         </footer>
     </div>
 
-    <!-- 【新增】简单的删除确认模态框 (无密码) -->
+    <!-- (删除确认模态框...与之前相同) -->
     <div id="confirm-delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
         <div id="confirm-modal-overlay" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
         <div class="glass-card rounded-xl p-6 md:p-8 shadow-lg max-w-sm w-full z-10" style="animation: fadeIn 0.3s ease-out forwards;">
             <h3 class="text-2xl font-semibold text-center mb-5">🗑️ 确认删除</h3>
             <p class="text-gray-300 text-center mb-8">您确定要删除这条日记吗？<br>此操作无法撤销。</p>
-            
             <div id="confirm-modal-message" class="mt-4 text-center text-red-400 h-6"></div>
-            
             <div class="flex gap-4 mt-6">
                 <button id="confirm-delete-cancel-btn" class="w-1/2 py-3 px-4 rounded-lg font-medium text-gray-300 bg-gray-700/60 hover:bg-gray-600/60 transition-colors">
                     取消
@@ -152,14 +127,10 @@
     </div>
 
 
-    <!-- 4. 核心 JavaScript 逻辑 -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- 【修改】全局会话密码 ---
             let sessionPassword = null;
-
-            // --- 获取元素 ---
             const mainContent = document.getElementById('main-content');
             
             // 登录元素
@@ -167,25 +138,23 @@
             const loginPasswordInput = document.getElementById('login-password');
             const loginButton = document.getElementById('login-button');
             const loginMessage = document.getElementById('login-message');
+            // 【新增】头像元素
+            const avatarLoader = document.getElementById('avatar-loader');
+            const avatarImage = document.getElementById('avatar-image');
 
-            // 主页面元素
+            // (主页面元素...与之前相同)
             const tabView = document.getElementById('tab-view');
             const tabSubmit = document.getElementById('tab-submit');
             const sectionView = document.getElementById('section-view');
             const sectionSubmit = document.getElementById('section-submit');
-            
             const summaryForm = document.getElementById('summary-form');
             const submitButton = document.getElementById('submit-button');
             const formMessage = document.getElementById('form-message');
-            // const passwordInput = document.getElementById('admin-password'); // 【移除】
             const contentInput = document.getElementById('summary-content');
-            
             const summaryGrid = document.getElementById('summary-grid');
             const loadingSpinner = document.getElementById('loading-spinner');
             const noSummaries = document.getElementById('no-summaries');
             const deleteMessage = document.getElementById('delete-message');
-
-            // 【修改】新的删除确认模态框元素
             const confirmDeleteModal = document.getElementById('confirm-delete-modal');
             const confirmModalOverlay = document.getElementById('confirm-modal-overlay');
             const confirmDeleteCancelBtn = document.getElementById('confirm-delete-cancel-btn');
@@ -197,7 +166,42 @@
 
             const trashIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4H2.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>`;
 
-            // --- 【新增】登录逻辑 ---
+            // --- 【新增】加载头像逻辑 ---
+            async function loadAvatar() {
+                try {
+                    // 默认显示加载器
+                    avatarLoader.classList.remove('hidden');
+                    avatarImage.classList.add('hidden');
+
+                    let imageUrl;
+                    if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
+                        console.log("本地预览模式：模拟加载头像...");
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        // 模拟一个base64图像 (一个简单的紫色圆圈)
+                        imageUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%238B5CF6'/%3E%3Ctext x='50' y='60' font-size='30' fill='white' text-anchor='middle'%3E( ˘v˘ )%3C/text%3E%3C/svg%3E";
+                    } else {
+                        const response = await fetch('/.netlify/functions/getAvatar');
+                        if (!response.ok) {
+                            throw new Error('获取头像失败');
+                        }
+                        const result = await response.json();
+                        imageUrl = result.imageUrl;
+                    }
+
+                    avatarImage.src = imageUrl;
+                    avatarImage.classList.remove('hidden'); // 显示图像
+                    avatarLoader.classList.add('hidden'); // 隐藏加载器
+
+                } catch (error) {
+                    console.error('加载头像失败:', error);
+                    // 失败时，使用占位符
+                    avatarImage.src = 'https://placehold.co/120x120/331a4a/a975ff?text=Avatar';
+                    avatarImage.classList.remove('hidden');
+                    avatarLoader.classList.add('hidden');
+                }
+            }
+
+            // --- (登录逻辑...与之前相同) ---
             async function handleLogin() {
                 const password = loginPasswordInput.value;
                 if (!password) {
@@ -210,13 +214,10 @@
                 loginMessage.textContent = '';
 
                 try {
-                    // --- 检查是否为本地预览 ---
                     if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                         console.log("本地预览模式：模拟登录...");
                         await new Promise(resolve => setTimeout(resolve, 1000));
-                        // if (password !== '123') throw new Error("模拟密码错误"); // 测试失败
                     } else {
-                    // --- 真实的 Netlify Fetch ---
                         const response = await fetch('/.netlify/functions/checkPassword', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -228,18 +229,16 @@
                         }
                     }
 
-                    // --- 登录成功 ---
-                    sessionPassword = password; // 存储密码
+                    sessionPassword = password;
                     loginMask.style.transition = 'opacity 0.5s ease-out';
                     loginMask.style.opacity = '0';
-                    setTimeout(() => loginMask.classList.add('hidden'), 500); // 动画后隐藏
+                    setTimeout(() => loginMask.classList.add('hidden'), 500); 
                     
-                    mainContent.classList.remove('hidden'); // 显示主内容
+                    mainContent.classList.remove('hidden');
                     mainContent.style.animation = 'fadeInOverlay 0.5s ease-out';
-                    document.body.style.overflow = 'auto'; // 恢复滚动
+                    document.body.style.overflow = 'auto'; 
                     
-                    // 登录成功后才开始加载日记
-                    loadSummaries();
+                    loadSummaries(); // 登录成功后加载日记
 
                 } catch (error) {
                     console.error('登录失败:', error);
@@ -248,7 +247,6 @@
                     loginButton.innerHTML = '<span>进入日记</span>';
                 }
             }
-            
             loginButton.addEventListener('click', handleLogin);
             loginPasswordInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -256,233 +254,66 @@
                 }
             });
 
-            // --- 标签页切换逻辑 ---
-            function showViewSection() {
-                sectionView.classList.remove('hidden');
-                sectionSubmit.classList.add('hidden');
-                tabView.classList.add('active', 'text-white');
-                tabSubmit.classList.remove('active', 'text-white');
-                tabSubmit.classList.add('text-gray-400');
-                loadSummaries();
-            }
-            
-            function showSubmitSection() {
-                sectionView.classList.add('hidden');
-                sectionSubmit.classList.remove('hidden');
-                tabView.classList.remove('active', 'text-white');
-                tabView.classList.add('text-gray-400');
-                tabSubmit.classList.add('active', 'text-white');
-            }
-
+            // --- (标签页切换...与之前相同) ---
+            function showViewSection() { /* ... */ }
+            function showSubmitSection() { /* ... */ }
+            // (此处省略代码以保持简洁，逻辑与上一版完全相同)
+            function showViewSection(){sectionView.classList.remove('hidden');sectionSubmit.classList.add('hidden');tabView.classList.add('active','text-white');tabSubmit.classList.remove('active','text-white');tabSubmit.classList.add('text-gray-400');loadSummaries();}
+            function showSubmitSection(){sectionView.classList.add('hidden');sectionSubmit.classList.remove('hidden');tabView.classList.remove('active','text-white');tabView.classList.add('text-gray-400');tabSubmit.classList.add('active','text-white');}
             tabView.addEventListener('click', showViewSection);
             tabSubmit.addEventListener('click', showSubmitSection);
 
-            // --- (加载总结逻辑...与之前相同) ---
-            async function loadSummaries() {
-                // (函数内容与上一个版本完全相同，此处省略以保持简洁)
-                loadingSpinner.classList.remove('hidden');
-                summaryGrid.innerHTML = ''; 
-                noSummaries.classList.add('hidden');
-                deleteMessage.textContent = ''; 
+            // --- (加载总结...与之前相同) ---
+            async function loadSummaries() { /* ... */ }
+            // (此处省略代码以保持简洁，逻辑与上一版完全相同)
+            async function loadSummaries(){loadingSpinner.classList.remove('hidden');summaryGrid.innerHTML='';noSummaries.classList.add('hidden');deleteMessage.textContent='';if(window.location.protocol.startsWith('blob')||window.location.protocol==='file:'){console.log("本地预览模式：正在加载模拟数据...");await new Promise(resolve=>setTimeout(resolve,1000));const mockSummaries=[{date:new Date().toISOString(),summary:"【模拟数据】...",gemini_response:"..."},{date:new Date(Date.now()-86400000).toISOString(),summary:"【模拟数据】...",gemini_response:"..."}];if(mockSummaries.length===0){noSummaries.classList.remove('hidden');}else{mockSummaries.forEach(item=>{createCard(item);});}loadingSpinner.classList.add('hidden');return;}
+            try{const response=await fetch('/.netlify/functions/getSummaries');if(!response.ok){throw new Error(`HTTP error! status: ${response.status}`);}
+            const summaries=await response.json();if(summaries.length===0){noSummaries.classList.remove('hidden');}else{summaries.sort((a,b)=>new Date(b.date)-new Date(a.date));summaries.forEach(item=>{createCard(item);});}}catch(error){console.error('加载总结失败:',error);noSummaries.textContent='❌ 加载日记失败，请稍后重试。';noSummaries.classList.remove('hidden');}finally{loadingSpinner.classList.add('hidden');}}
 
-                // (本地预览模拟...)
-                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
-                    console.log("本地预览模式：正在加载模拟数据...");
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    const mockSummaries = [
-                        { date: new Date().toISOString(), summary: "【模拟数据】...", gemini_response: "..." },
-                        { date: new Date(Date.now() - 86400000).toISOString(), summary: "【模拟数据】...", gemini_response: "..." }
-                    ];
-                    if (mockSummaries.length === 0) { noSummaries.classList.remove('hidden'); } 
-                    else { mockSummaries.forEach(item => { createCard(item); }); }
-                    loadingSpinner.classList.add('hidden');
-                    return; 
-                }
-                
-                // (真实的 Netlify Fetch...)
-                try {
-                    const response = await fetch('/.netlify/functions/getSummaries');
-                    if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                    const summaries = await response.json();
-                    if (summaries.length === 0) { noSummaries.classList.remove('hidden'); } 
-                    else {
-                        summaries.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        summaries.forEach(item => { createCard(item); });
-                    }
-                } catch (error) {
-                    console.error('加载总结失败:', error);
-                    noSummaries.textContent = '❌ 加载日记失败，请稍后重试。';
-                    noSummaries.classList.remove('hidden');
-                } finally {
-                    loadingSpinner.classList.add('hidden');
-                }
-            }
+            // --- (创建卡片...与之前相同) ---
+            function createCard(item) { /* ... */ }
+            // (此处省略代码以保持简洁，逻辑与上一版完全相同)
+            function createCard(item){const card=document.createElement('div');card.className='summary-card glass-card rounded-xl p-6 shadow-lg relative';const formattedDate=new Date(item.date).toLocaleString('zh-CN',{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'numeric'});card.innerHTML=`<button class="delete-btn absolute top-3 right-3 text-gray-500 hover:text-red-400 transition-colors z-10" data-id="${item.date}" title="删除此条目">${trashIconSvg}</button><p class="text-sm text-gray-400 mb-2">${formattedDate}</p><p class="text-gray-100 whitespace-pre-line">${item.summary}</p>${item.gemini_response?`<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>`:''}`;summaryGrid.appendChild(card);}
 
-            // (创建卡片的辅助函数...与之前相同)
-            function createCard(item) {
-                const card = document.createElement('div');
-                card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg relative';
-                const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
-                    year: 'numeric', month: 'long', day: 'numeric',
-                    hour: 'numeric', minute: 'numeric'
-                });
-                card.innerHTML = `
-                    <button class="delete-btn absolute top-3 right-3 text-gray-500 hover:text-red-400 transition-colors z-10" data-id="${item.date}" title="删除此条目">
-                        ${trashIconSvg}
-                    </button>
-                    <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
-                    <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
-                    ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
-                `;
-                summaryGrid.appendChild(card);
-            }
+            // --- (表单提交...与之前相同) ---
+            summaryForm.addEventListener('submit', async (e) => { /* ... */ });
+            // (此处省略代码以保持简洁，逻辑与上一版完全相同)
+            summaryForm.addEventListener('submit',async(e)=>{e.preventDefault();const password=sessionPassword;const summary=contentInput.value;if(!password){formMessage.textContent='❌ 会话无效，请刷新页面重新登录。';formMessage.classList.add('text-red-400');return;}
+            submitButton.disabled=true;submitButton.innerHTML=`<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;formMessage.textContent='';formMessage.className='mt-4 text-center';if(window.location.protocol.startsWith('blob')||window.location.protocol==='file:'){console.log("本地预览模式：正在模拟提交...");await new Promise(resolve=>setTimeout(resolve,1500));formMessage.textContent='🎉 【模拟】提交成功！';formMessage.classList.add('text-green-400');contentInput.value='';setTimeout(()=>{showViewSection();formMessage.textContent='';},2000);submitButton.disabled=false;submitButton.innerHTML='<span>提交总结</span>';return;}
+            try{const response=await fetch('/.netlify/functions/submitSummary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password,summary})});const result=await response.json();if(!response.ok){throw new Error(result.error||'提交失败');}
+            formMessage.textContent='🎉 提交成功！已生成 AI 点评。';formMessage.classList.add('text-green-400');contentInput.value='';setTimeout(()=>{showViewSection();formMessage.textContent='';},2000);}catch(error){console.error('提交失败:',error);formMessage.textContent=`❌ 失败: ${error.message}`;formMessage.classList.add('text-red-400');}finally{submitButton.disabled=false;submitButton.innerHTML='<span>提交总结</span>';}});
 
-            // --- 【修改】表单提交逻辑 ---
-            summaryForm.addEventListener('submit', async (e) => {
-                e.preventDefault(); 
-                
-                // 【修改】从全局变量获取密码
-                const password = sessionPassword;
-                const summary = contentInput.value;
+            // --- (删除模态框逻辑...与之前相同) ---
+            function openConfirmModal(entryId, cardElement) { /* ... */ }
+            function closeConfirmModal() { /* ... */ }
+            // (此处省略代码以保持简洁，逻辑与上一版完全相同)
+            function openConfirmModal(entryId,cardElement){entryIdToDelete=entryId;cardElementToDelete=cardElement;confirmDeleteModal.classList.remove('hidden');}
+            function closeConfirmModal(){confirmDeleteModal.classList.add('hidden');confirmModalMessage.textContent='';entryIdToDelete=null;cardElementToDelete=null;confirmDeleteConfirmBtn.disabled=false;confirmDeleteConfirmBtn.innerHTML='<span>确认删除</span>';}
+            confirmModalOverlay.addEventListener('click',closeConfirmModal);
+        	confirmDeleteCancelBtn.addEventListener('click',closeConfirmModal);
 
-                if (!password) {
-                    formMessage.textContent = '❌ 会话无效，请刷新页面重新登录。';
-                    formMessage.classList.add('text-red-400');
-                    return;
-                }
-                
-                submitButton.disabled = true;
-                submitButton.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
-                formMessage.textContent = '';
-                formMessage.className = 'mt-4 text-center';
+            // --- (删除事件委托...与之前相同) ---
+            summaryGrid.addEventListener('click', (e) => { /* ... */ });
+            // (此处省略代码以保持简洁，逻辑与上一版完全相同)
+            summaryGrid.addEventListener('click',(e)=>{const deleteButton=e.target.closest('.delete-btn');if(!deleteButton)return;openConfirmModal(deleteButton.dataset.id,deleteButton.closest('.summary-card'));});
 
-                // (本地预览模拟...)
-                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
-                    console.log("本地预览模式：正在模拟提交...");
-                    await new Promise(resolve => setTimeout(resolve, 1500)); 
-                    formMessage.textContent = '🎉 【模拟】提交成功！';
-                    formMessage.classList.add('text-green-400');
-                    contentInput.value = ''; 
-                    setTimeout(() => { showViewSection(); formMessage.textContent = ''; }, 2000);
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '<span>提交总结</span>';
-                    return;
-                }
-
-                // (真实的 Netlify Fetch... 向 body 中添加了 password)
-                try {
-                    const response = await fetch('/.netlify/functions/submitSummary', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password, summary }) // 【修改】
-                    });
-                    const result = await response.json();
-                    if (!response.ok) { throw new Error(result.error || '提交失败'); }
-                    
-                    formMessage.textContent = '🎉 提交成功！已生成 AI 点评。';
-                    formMessage.classList.add('text-green-400');
-                    contentInput.value = ''; 
-                    setTimeout(() => { showViewSection(); formMessage.textContent = ''; }, 2000);
-                } catch (error) {
-                    console.error('提交失败:', error);
-                    formMessage.textContent = `❌ 失败: ${error.message}`;
-                    formMessage.classList.add('text-red-400');
-                } finally {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '<span>提交总结</span>';
-                }
-            });
-
-            // --- 【修改】新的确认模态框逻辑 ---
-            function openConfirmModal(entryId, cardElement) {
-                entryIdToDelete = entryId;
-                cardElementToDelete = cardElement;
-                confirmDeleteModal.classList.remove('hidden');
-            }
-
-            function closeConfirmModal() {
-                confirmDeleteModal.classList.add('hidden');
-                confirmModalMessage.textContent = '';
-                entryIdToDelete = null;
-                cardElementToDelete = null;
-                confirmDeleteConfirmBtn.disabled = false;
-                confirmDeleteConfirmBtn.innerHTML = '<span>确认删除</span>';
-            }
-
-            confirmModalOverlay.addEventListener('click', closeConfirmModal);
-            confirmDeleteCancelBtn.addEventListener('click', closeConfirmModal);
-
-            // 【修改】删除按钮事件委托 (打开新模态框)
-            summaryGrid.addEventListener('click', (e) => {
-                const deleteButton = e.target.closest('.delete-btn');
-                if (!deleteButton) return;
-                openConfirmModal(deleteButton.dataset.id, deleteButton.closest('.summary-card'));
-            });
-
-            // 【修改】确认删除按钮逻辑 (使用 sessionPassword)
-            confirmDeleteConfirmBtn.addEventListener('click', async () => {
-                const password = sessionPassword; // 【修改】
-                
-                if (!password) {
-                    confirmModalMessage.textContent = '会话无效，请刷新重试';
-                    return;
-                }
-                if (!entryIdToDelete || !cardElementToDelete) return;
-
-                confirmDeleteConfirmBtn.disabled = true;
-                confirmDeleteConfirmBtn.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
-                confirmModalMessage.textContent = '';
-
-                try {
-                    // --- 本地预览模拟 ---
-                    if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
-                        console.log(`本地预览：模拟删除 ID: ${entryIdToDelete}`);
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        // throw new Error("模拟删除失败");
-                    } else {
-                    // --- 真实的 Netlify Fetch ---
-                        const response = await fetch('/.netlify/functions/deleteSummary', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: entryIdToDelete, password: password }) // 【修改】
-                        });
-                        const result = await response.json();
-                        if (!response.ok) {
-                            throw new Error(result.error || '删除失败');
-                        }
-                    }
-
-                    // --- 删除成功 ---
-                    deleteMessage.textContent = '✅ 删除成功！';
-                    deleteMessage.className = 'text-center text-green-400 mb-4';
-                    cardElementToDelete.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
-                    cardElementToDelete.style.opacity = '0';
-                    cardElementToDelete.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        cardElementToDelete.remove();
-                        if (summaryGrid.children.length === 0) {
-                            noSummaries.classList.remove('hidden');
-                        }
-                    }, 300);
-                    closeConfirmModal();
-
-                } catch (error) {
-                    // --- 删除失败 ---
-                    console.error('删除失败:', error);
-                    confirmModalMessage.textContent = `❌ 失败: ${error.message}`;
-                    confirmDeleteConfirmBtn.disabled = false;
-                    confirmDeleteConfirmBtn.innerHTML = '<span>确认删除</span>';
-                }
-                
-                setTimeout(() => {
-                    deleteMessage.textContent = '';
-                }, 3000);
-            });
+            // --- (确认删除逻辑...与之前相同) ---
+            confirmDeleteConfirmBtn.addEventListener('click', async () => { /* ... */ });
+            // (此处省略代码以保持简洁，逻辑与上一版完全相同)
+            confirmDeleteConfirmBtn.addEventListener('click',async()=>{const password=sessionPassword;if(!password){confirmModalMessage.textContent='会话无效，请刷新重试';return;}
+            if(!entryIdToDelete||!cardElementToDelete)return;confirmDeleteConfirmBtn.disabled=true;confirmDeleteConfirmBtn.innerHTML=`<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;confirmModalMessage.textContent='';try{if(window.location.protocol.startsWith('blob')||window.location.protocol==='file:'){console.log(`本地预览：模拟删除 ID: ${entryIdToDelete}`);await new Promise(resolve=>setTimeout(resolve,1000));}else{const response=await fetch('/.netlify/functions/deleteSummary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:entryIdToDelete,password:password})});const result=await response.json();if(!response.ok){throw new Error(result.error||'删除失败');}}
+            deleteMessage.textContent='✅ 删除成功！';deleteMessage.className='text-center text-green-400 mb-4';cardElementToDelete.style.transition='opacity 0.3s ease-out, transform 0.3s ease-out';cardElementToDelete.style.opacity='0';cardElementToDelete.style.transform='scale(0.95)';setTimeout(()=>{cardElementToDelete.remove();if(summaryGrid.children.length===0){noSummaries.classList.remove('hidden');}},300);closeConfirmModal();}catch(error){console.error('删除失败:',error);confirmModalMessage.textContent=`❌ 失败: ${error.message}`;confirmDeleteConfirmBtn.disabled=false;confirmDeleteConfirmBtn.innerHTML='<span>确认删除</span>';}
+            setTimeout(()=>{deleteMessage.textContent='';},3000);});
 
             // --- 【修改】初始加载 ---
-            // 不再自动加载，等待登录成功
-            // loadSummaries(); 
+            // 立即加载头像
+            loadAvatar();
+            
+            // (自动聚焦到密码框)
+            loginPasswordInput.focus();
         });
     </script>
 </body>
 </html>
+
+
