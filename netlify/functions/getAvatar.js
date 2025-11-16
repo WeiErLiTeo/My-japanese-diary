@@ -1,5 +1,7 @@
 // --- Netlify Function: getAvatar.js ---
-// 此函数负责调用 Gemini (Imagen 4) 生成一个二次元头像
+// 【修改】这是一个轻量、免费的最终版本
+// 它从您自己的 GitHub 仓库 picture/ 文件夹中获取图片
+// 这几乎不消耗任何资源，可以永久在免费套餐上运行
 
 exports.handler = async (event, context) => {
     
@@ -8,59 +10,35 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
-    // --- 1. 从环境变量获取 API 密钥 ---
-    const { GEMINI_API_KEY } = process.env;
-
-    if (!GEMINI_API_KEY) {
-        return { statusCode: 500, body: JSON.stringify({ error: '未配置 GEMINI_API_KEY' }) };
-    }
-
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`;
-    
-    // --- 2. 准备请求 ---
-    // 【修改】更新了提示词，以生成更符合要求的“热门女头”
-    const prompt = "一个高质量、日漫风格的二次元女生头像，色彩鲜艳，适合作为个人资料图片。特写，在网络上很受欢迎的画风，不含文本或水印。";
-    
-    const payload = {
-        instances: [{ prompt: prompt }],
-        parameters: { "sampleCount": 1 }
-    };
-
-    // --- 3. 调用 API ---
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.json();
-            console.error('Imagen API 错误:', errorBody);
-            throw new Error(`API 响应失败: ${errorBody?.error?.message || response.statusText}`);
-        }
-
-        const result = await response.json();
+    // --- 1. 您仓库中的图片列表 ---
+    // 【重要】我们使用 "raw.githubusercontent.com" 的原始文件链接
+    const imageList = [
+        'https://raw.githubusercontent.com/WeiErLiTeo/My-japanese-diary/main/picture/01.JPG'
         
-        // 4. --- 处理响应 ---
-        if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
-            const base64Data = result.predictions[0].bytesBase64Encoded;
-            const imageUrl = `data:image/png;base64,${base64Data}`;
-            
-            // 成功返回
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ imageUrl: imageUrl })
-            };
-        } else {
-            throw new Error('API 响应中未找到图像数据');
-        }
+        // --- 如何添加更多图片 ---
+        // 1. 上传 02.JPG, 03.JPG 等到您 GitHub 的 picture 文件夹
+        // 2. 在下面添加新的链接 (注意前面的逗号):
+        // , 'https://raw.githubusercontent.com/WeiErLiTeo/My-japanese-diary/main/picture/02.JPG'
+        // , 'https://raw.githubusercontent.com/WeiErLiTeo/My-japanese-diary/main/picture/03.JPG'
+        // , 'https://raw.githubusercontent.com/WeiErLiTeo/My-japanese-diary/main/picture/04.JPG'
+    ];
 
+    // --- 2. 随机选择一张图片 ---
+    const randomIndex = Math.floor(Math.random() * imageList.length);
+    const selectedImageUrl = imageList[randomIndex];
+
+    // --- 3. 成功返回 ---
+    try {
+        return {
+            statusCode: 200,
+            // 按照前端 HTML 期望的 JSON 格式返回
+            body: JSON.stringify({ imageUrl: selectedImageUrl })
+        };
     } catch (error) {
         console.error('getAvatar function error:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: `生成头像失败: ${error.message}` })
+            body: JSON.stringify({ error: '获取图片链接失败' })
         };
     }
 };
