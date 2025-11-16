@@ -1,388 +1,641 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日语学习日记 | 每日记录</title>
-    <!-- 加载 Tailwind CSS -->
+    <title>MY DIARY</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入自定义样式和动画 -->
+    
+    <!-- Quill.js -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <!-- 字体: Noto Sans JP (现代黑体) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        /* 使用更适合的字体，Inter 是一个很棒的现代字体 */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        
+        /* --- 1. City Boy 风格配色 & 全局 --- */
+        :root {
+            --primary-blue: #0047AB; /* 克莱因蓝 */
+            --bg-grey: #F2F2F2;      /* 水泥灰背景 */
+            --paper-white: #FCFCFC;  /* 纸张白 */
+            --text-main: #333333;
+            --text-sub: #888888;
+        }
+
         body {
-            font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            /* 流畅的背景渐变动画 */
-            background: linear-gradient(120deg, #1e0033, #3f004a, #1a0b38);
-            background-size: 200% 200%;
-            animation: gradientBG 20s ease infinite;
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-grey);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            perspective: 2000px; /* 3D 视距 */
         }
 
-        /* 渐变动画 */
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* --- 2. 3D 书本容器 --- */
+        .book-wrapper {
+            position: relative;
+            width: 380px;
+            height: 600px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        
+        /* 桌面端放大 */
+        @media (min-width: 768px) {
+            .book-wrapper {
+                width: 460px;
+                height: 680px;
+            }
         }
 
-        /* "玻璃拟态" 卡片样式 */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05); /* 半透明背景 */
-            backdrop-filter: blur(12px); /* 关键的毛玻璃效果 */
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1); /* 微妙的边框 */
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 平滑过渡 */
-        }
-        .glass-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* 标签栏激活状态 */
-        .tab-button.active {
+        /* --- 3. 封面 (Cover) --- */
+        .cover {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: var(--primary-blue);
+            border-radius: 4px 12px 12px 4px;
+            z-index: 10;
+            transform-origin: left center; /* 绕左轴旋转 */
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+            cursor: pointer;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.2);
+            
+            /* 封面设计 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
             color: white;
-            background-color: #8B5CF6; /* 紫色 */
         }
 
-        /* 表单输入框样式 */
-        .form-input {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+        .cover-title {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -1px;
         }
-        .form-input:focus {
-            background: rgba(0, 0, 0, 0.3);
-            border-color: #8B5CF6; /* 焦点时紫色 */
-            box-shadow: 0 0 0 2px #8B5CF6;
-        }
-
-        /* 渐变按钮 */
-        .btn-gradient {
-            background-image: linear-gradient(to right, #8B5CF6 0%, #EC4899 51%, #8B5CF6 100%);
-            background-size: 200% auto;
-            transition: 0.5s;
-        }
-        .btn-gradient:hover {
-            background-position: right center; /* 悬停时渐变移动 */
-        }
-        .btn-gradient:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background-image: none;
-            background-color: #374151;
+        
+        .cover-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 10px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        /* 卡片淡入动画 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .summary-card {
-            animation: fadeIn 0.5s ease-out forwards;
+        .cover-footer {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
         }
 
-        /* 简单的加载动画 */
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 3px solid #FFF;
-            border-bottom-color: #8B5CF6;
+        /* 封面的背面 (翻开后看到的左侧) */
+        .cover-back {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #fff;
+            border-radius: 4px 12px 12px 4px;
+            transform: rotateY(180deg); /* 背面 */
+            backface-visibility: hidden; /* 只有翻过来才看到 */
+            z-index: 9;
+            border-right: 1px solid #eee;
+        }
+        /* 我们用伪元素模拟封面背面的质感，但为了简单，我们只让它变白 */
+        .cover::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #f0f0f0;
+            transform: rotateY(180deg) translateZ(1px);
+            border-radius: 4px 12px 12px 4px;
+            backface-visibility: hidden;
+        }
+
+
+        /* --- 4. 内页 (Page) --- */
+        .page {
+            position: absolute;
+            top: 2px; left: 0;
+            width: 99%; height: 99%; /* 稍微比封面小一点 */
+            background-color: var(--paper-white);
+            border-radius: 2px 10px 10px 2px;
+            z-index: 5;
+            box-shadow: inset 3px 0 10px rgba(0,0,0,0.05); /* 书脊阴影 */
+            
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* --- 状态控制 --- */
+        /* 翻开书本 */
+        body.book-opened .cover {
+            transform: rotateY(-180deg);
+        }
+        /* 翻开后，书本整体稍微右移，居中显示内页 */
+        body.book-opened .book-wrapper {
+            transform: translateX(180px);
+        }
+        @media (max-width: 768px) {
+            body.book-opened .book-wrapper {
+                transform: translateX(0); /* 手机上不平移，直接看内页 */
+            }
+            body.book-opened .cover {
+                /* 手机上封面彻底消失，避免遮挡 */
+                opacity: 0; 
+                pointer-events: none;
+            }
+        }
+
+        /* --- 5. 内页布局 (Header & Content) --- */
+        .page-header {
+            padding: 20px 25px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+        }
+        
+        .date-display {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+        .date-display span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .weather-widget {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .weather-icon { font-size: 1.2rem; margin-bottom: 2px; }
+
+        .page-content {
+            flex: 1;
+            overflow-y: auto; /* 内容滚动 */
+            padding: 0;
+            position: relative;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px); /* 点阵纸 */
+            background-size: 20px 20px;
+        }
+
+        /* 滚动条隐藏 */
+        .page-content::-webkit-scrollbar { width: 4px; }
+        .page-content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+        /* --- 6. 密码层 --- */
+        #auth-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(5px);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+        .hidden-layer {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .auth-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #000;
+            text-align: center;
+            font-size: 1.5rem;
+            width: 150px;
+            padding: 5px;
+            outline: none;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        .auth-btn {
+            margin-top: 20px;
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* --- 7. 侧边标签 (Tabs) --- */
+        .tabs-container {
+            position: absolute;
+            right: 0;
+            top: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 40;
+        }
+        .nav-tab {
+            background: #333;
+            color: #fff;
+            padding: 8px 12px 8px 16px;
+            border-radius: 4px 0 0 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: -2px 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            transform: translateX(5px); /* 默认收起一点 */
+        }
+        .nav-tab.active {
+            background: var(--primary-blue);
+            transform: translateX(-2px);
+        }
+        .nav-tab:hover { transform: translateX(-5px); }
+
+        /* --- 8. 内容列表 & 写作区 --- */
+        .section { padding: 20px 25px; display: none; }
+        .section.active { display: block; animation: slideUp 0.4s ease; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 日记卡片 */
+        .diary-item {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .diary-item:hover { transform: translateY(-2px); border-color: var(--primary-blue); }
+        .item-date { font-size: 0.75rem; color: #999; font-weight: 600; margin-bottom: 5px; display: block; }
+        .item-preview { font-size: 0.95rem; color: #333; line-height: 1.5; }
+        
+        /* 编辑器调整 */
+        #editor-container { height: 350px; border: none !important; font-size: 1rem; background: transparent; }
+        .ql-toolbar { border: none !important; border-bottom: 1px solid #eee !important; padding: 8px !important; }
+        .ql-container { border: none !important; }
+        
+        /* 提交按钮 */
+        .submit-fab {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-blue);
+            color: white;
+            width: 50px; height: 50px;
             border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,71,171,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: none;
+            font-size: 1.5rem;
         }
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .submit-fab:hover { transform: scale(1.1) rotate(90deg); }
+
+        /* 详情页 */
+        .detail-view { display: none; padding: 20px 25px; }
+        .detail-view.active { display: block; }
+        .detail-body { margin-top: 20px; line-height: 1.8; color: #333; }
+        .back-btn { font-size: 0.8rem; color: #999; cursor: pointer; margin-bottom: 10px; display: inline-block; }
+
+        /* AI 点评 (极简版) */
+        .teacher-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 3px solid var(--primary-blue);
+            font-size: 0.9rem;
+            color: #555;
         }
+
     </style>
 </head>
-<body class="text-gray-100 min-h-screen p-4 md:p-8">
+<body>
 
-    <!-- 1. 页面标题 -->
-    <header class="text-center mb-10">
-        <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-            🌸 我的日语学习日记 🌸
-        </h1>
-        <p class="text-lg text-gray-300 mt-2">日々の記録、未来への投資。</p>
-    </header>
-
-    <main class="max-w-4xl mx-auto">
-        <!-- 2. 标签页切换 -->
-        <div class="flex justify-center mb-8 bg-gray-800/50 rounded-lg p-1 max-w-sm mx-auto">
-            <button id="tab-view" class="tab-button active w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">查看总结</button>
-            <button id="tab-submit" class="tab-button w-1/2 py-2 px-4 rounded-md font-medium text-gray-400 transition-all duration-300">提交新总结</button>
+    <div class="book-wrapper" id="book">
+        
+        <!-- 封面 -->
+        <div class="cover" onclick="flipOpen()">
+            <div>
+                <div class="cover-title">MY<br>DIARY</div>
+                <div class="cover-subtitle">DAILY LOG & STUDY</div>
+            </div>
+            <div class="cover-footer">
+                <span>NO. 01</span>
+                <span>JAPANESE LEARNING</span>
+            </div>
+            <!-- 伪元素模拟封面背面 -->
+            <div class="cover-back"></div> 
         </div>
 
-        <!-- 3. 内容区域 -->
-        <div>
-            <!-- 3.1 查看总结 (默认显示) -->
-            <section id="section-view">
-                <div id="loading-spinner" class="text-center py-10">
-                    <div class="loader mx-auto"></div>
-                    <p class="mt-4 text-gray-400">正在加载日记...</p>
+        <!-- 内页 -->
+        <div class="page">
+            
+            <!-- 页面头部: 日期 + 天气 -->
+            <div class="page-header">
+                <div class="date-display" id="current-date">
+                    16
+                    <span>NOV. 2025</span>
                 </div>
-                <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 总结卡片将在这里动态插入 -->
-                    <!-- 示例卡片:
-                    <div class="summary-card glass-card rounded-xl p-6 shadow-lg">
-                        <p class="text-sm text-gray-400 mb-2">2023年10月27日</p>
-                        <p class="text-gray-100 whitespace-pre-line">今天学习了 N2 语法「～ものだから」，感觉很有趣。</p>
-                        <p class="mt-4 text-sm text-purple-300">老师鼓励：素晴らしい！その調子で頑張って！</p>
+                <div class="weather-widget" id="weather-box">
+                    <span class="weather-icon">☁️</span>
+                    <span id="weather-temp">Loading...</span>
+                    <span id="weather-loc" style="font-size: 0.7rem; opacity: 0.5;">Tokyo</span>
+                </div>
+            </div>
+
+            <!-- 侧边导航 (便利贴) -->
+            <div class="tabs-container" id="nav-tabs">
+                <div class="nav-tab active" onclick="switchTab('list')">LIST</div>
+                <div class="nav-tab" onclick="switchTab('write')">ADD</div>
+            </div>
+
+            <!-- 密码层 -->
+            <div id="auth-layer">
+                <div style="text-align: center;">
+                    <p style="font-size: 0.8rem; color: #999; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Security Check</p>
+                    <input type="password" id="auth-input" class="auth-input" placeholder="CODE">
+                    <br>
+                    <button class="auth-btn" onclick="checkPass()">ENTER</button>
+                    <p id="auth-msg" style="margin-top: 10px; color: red; font-size: 0.8rem;"></p>
+                </div>
+            </div>
+
+            <!-- 页面内容容器 -->
+            <div class="page-content">
+                
+                <!-- 1. 列表视图 -->
+                <div id="view-list" class="section active">
+                    <div id="diary-container">
+                        <!-- JS 填充日记 -->
                     </div>
-                    -->
+                    <div id="loader" style="text-align: center; padding: 20px; color: #999;">Loading...</div>
                 </div>
-                <p id="no-summaries" class="hidden text-center text-gray-400 py-10">还没有日记哦，快去“提交新总结”吧！</p>
-            </section>
 
-            <!-- 3.2 提交总结 (默认隐藏) -->
-            <section id="section-submit" class="hidden">
-                <div class="glass-card rounded-xl p-6 md:p-10 shadow-lg max-w-lg mx-auto">
-                    <form id="summary-form">
-                        <h2 class="text-2xl font-semibold text-center mb-6">📝 记录今日所学</h2>
-                        
-                        <div class="mb-5">
-                            <label for="admin-password" class="block text-sm font-medium text-gray-300 mb-2">🔑 管理员密码</label>
-                            <input type="password" id="admin-password" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="请输入您的安全密码" required>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <label for="summary-content" class="block text-sm font-medium text-gray-300 mb-2">📖 学习内容</label>
-                            <textarea id="summary-content" rows="6" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="例如：今天学习了... 掌握了... 遇到的问题是..." required></textarea>
-                        </div>
-                        
-                        <button type="submit" id="submit-button" class="btn-gradient w-full text-white font-bold py-3 px-6 rounded-lg text-lg">
-                            <span>提交总结</span>
-                        </button>
-                        
-                        <div id="form-message" class="mt-4 text-center"></div>
-                    </form>
+                <!-- 2. 写作视图 -->
+                <div id="view-write" class="section">
+                    <div id="editor-container"></div>
+                    <button class="submit-fab" onclick="submitDiary()">+</button>
                 </div>
-            </section>
+
+                <!-- 3. 详情视图 -->
+                <div id="view-detail" class="detail-view">
+                    <span class="back-btn" onclick="switchTab('list')">← BACK</span>
+                    <h2 id="detail-title" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 5px;"></h2>
+                    <div id="detail-body" class="detail-body prose"></div>
+                    <div id="detail-comment"></div>
+                </div>
+
+            </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="text-center text-gray-500 mt-16 pb-8">
-        <p>&copy; 2025 由 Gemini 强力驱动</p>
-    </footer>
-
-    <!-- 4. 核心 JavaScript 逻辑 -->
     <script>
-        // 等待 DOM 加载完成
+        let quill;
+        let allSummaries = [];
+
+        // --- 1. 初始化 ---
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // --- 获取元素 ---
-            const tabView = document.getElementById('tab-view');
-            const tabSubmit = document.getElementById('tab-submit');
-            const sectionView = document.getElementById('section-view');
-            const sectionSubmit = document.getElementById('section-submit');
-            
-            const summaryForm = document.getElementById('summary-form');
-            const submitButton = document.getElementById('submit-button');
-            const formMessage = document.getElementById('form-message');
-            const passwordInput = document.getElementById('admin-password');
-            const contentInput = document.getElementById('summary-content');
-            
-            const summaryGrid = document.getElementById('summary-grid');
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const noSummaries = document.getElementById('no-summaries');
+            // 更新时间
+            updateTime();
+            setInterval(updateTime, 60000);
+            
+            // 获取天气
+            getWeather();
 
-            // --- 标签页切换逻辑 ---
-            function showViewSection() {
-                sectionView.classList.remove('hidden');
-                sectionSubmit.classList.add('hidden');
-                tabView.classList.add('active', 'text-white');
-                tabSubmit.classList.remove('active', 'text-white');
-                tabSubmit.classList.add('text-gray-400');
-                // 切换时重新加载总结
-                loadSummaries();
-            }
-            
-            function showSubmitSection() {
-                sectionView.classList.add('hidden');
-                sectionSubmit.classList.remove('hidden');
-                tabView.classList.remove('active', 'text-white');
-                tabView.classList.add('text-gray-400');
-                tabSubmit.classList.add('active', 'text-white');
-            }
-
-            tabView.addEventListener('click', showViewSection);
-            tabSubmit.addEventListener('click', showSubmitSection);
-
-            // --- 加载总结逻辑 ---
-            async function loadSummaries() {
-                loadingSpinner.classList.remove('hidden');
-                summaryGrid.innerHTML = ''; // 清空旧内容
-                noSummaries.classList.add('hidden');
-
-                // --- 本地预览模拟 ---
-                // 检查是否在本地预览环境 (如 blob: URL 或 file: URL)
-                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
-                    console.log("本地预览模式：正在加载模拟数据...");
-                    
-                    // 模拟网络延迟
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                    const mockSummaries = [
-                        { 
-                            date: new Date().toISOString(), 
-                            summary: "【模拟数据】今天学习了 N2 语法「～ものだから」，感觉很有趣。", 
-                            gemini_response: "素晴らしい！その調子で頑張って！" 
-                        },
-                        { 
-                            date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-                            summary: "【模拟数据】复习了 N3 的动词变形，特别是「使役形」和「受身形」。", 
-                            gemini_response: "基本は大事ですね。よくできました！"
-                        }
-                    ];
-
-                    if (mockSummaries.length === 0) {
-                        noSummaries.classList.remove('hidden');
-                    } else {
-                        mockSummaries.forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
-                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
-                                year: 'numeric', month: 'long', day: 'numeric',
-                                hour: 'numeric', minute: 'numeric'
-                            });
-                            card.innerHTML = `
-                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
-                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
-                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
-                            `;
-                            summaryGrid.appendChild(card);
-                        });
-                    }
-                    loadingSpinner.classList.add('hidden');
-                    return; // 结束函数，不执行下面的真实 fetch
-                }
-                
-                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
-                try {
-                    // 这是 Netlify 函数的 "神奇" 路径
-                    const response = await fetch('/.netlify/functions/getSummaries');
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const summaries = await response.json();
-                    
-                    if (summaries.length === 0) {
-                        noSummaries.classList.remove('hidden');
-                    } else {
-                        // 按日期倒序显示
-                        summaries.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        
-                        summaries.forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
-                            
-                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: 'numeric'
-                            });
-                            
-                            card.innerHTML = `
-                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
-                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
-                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
-                            `;
-                            summaryGrid.appendChild(card);
-                        });
-                    }
-                } catch (error) {
-                    console.error('加载总结失败:', error);
-                    noSummaries.textContent = '❌ 加载日记失败，请稍后重试。';
-                    noSummaries.classList.remove('hidden');
-                } finally {
-                    loadingSpinner.classList.add('hidden');
-                }
-            }
-
-            // --- 表单提交逻辑 ---
-            summaryForm.addEventListener('submit', async (e) => {
-                e.preventDefault(); // 阻止表单默认提交
-                
-                const password = passwordInput.value;
-                const summary = contentInput.value;
-                
-                // 禁用按钮并显示加载中
-                submitButton.disabled = true;
-                submitButton.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
-                formMessage.textContent = '';
-                formMessage.className = 'mt-4 text-center';
-
-                // --- 本地预览模拟 ---
-                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
-                    console.log("本地预览模式：正在模拟提交...");
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // 模拟提交延迟
-                    
-                    // 模拟成功
-                    formMessage.textContent = '🎉 【模拟】提交成功！';
-                    formMessage.classList.add('text-green-400');
-                    contentInput.value = ''; // 清空输入框
-                    
-                    // 2秒后自动切换回查看页面
-                    setTimeout(() => {
-                        showViewSection();
-                        formMessage.textContent = '';
-                    }, 2000);
-
-                    // 恢复按钮
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '<span>提交总结</span>';
-                    return; // 结束函数，不执行真实 fetch
-                }
-
-                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
-                try {
-                    // 调用 "submitSummary" 后端函数
-                    const response = await fetch('/.netlify/functions/submitSummary', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password, summary })
-                    });
-                    
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        // 处理后端返回的错误（如密码错误）
-                        throw new Error(result.error || '提交失败');
-                    }
-                    
-                    // 成功!
-                    formMessage.textContent = '🎉 提交成功！已生成 AI 点评。';
-                    formMessage.classList.add('text-green-400');
-                    contentInput.value = ''; // 清空输入框
-                    
-                    // 2秒后自动切换回查看页面
-                    setTimeout(() => {
-                        showViewSection();
-                        formMessage.textContent = '';
-                    }, 2000);
-
-                } catch (error) {
-                    console.error('提交失败:', error);
-                    formMessage.textContent = `❌ 失败: ${error.message}`;
-                    formMessage.classList.add('text-red-400');
-                } finally {
-                    // 恢复按钮
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '<span>提交总结</span>';
+            // 初始化编辑器
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Write something...',
+                modules: {
+                    toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }]]
                 }
             });
 
-            // --- 初始加载 ---
-            loadSummaries();
+            // 检查登录状态 (如果已登录，翻开书后直接隐藏密码层)
+            if (sessionStorage.getItem('diaryPassword')) {
+                document.getElementById('auth-layer').style.display = 'none';
+                loadData();
+            }
         });
+
+        // --- 2. 翻书动画 ---
+        function flipOpen() {
+            document.body.classList.add('book-opened');
+        }
+
+        // --- 3. 密码验证 ---
+        function checkPass() {
+            const input = document.getElementById('auth-input');
+            const msg = document.getElementById('auth-msg');
+            if (!input.value) return;
+            
+            // 简单前端暂存，真实验证在后端
+            sessionStorage.setItem('diaryPassword', input.value);
+            
+            // 淡出密码层
+            const layer = document.getElementById('auth-layer');
+            layer.style.opacity = '0';
+            setTimeout(() => {
+                layer.style.display = 'none';
+                loadData(); // 尝试加载数据
+            }, 300);
+        }
+
+        // --- 4. 导航切换 ---
+        function switchTab(tab) {
+            // 隐藏所有
+            document.getElementById('view-list').classList.remove('active');
+            document.getElementById('view-write').classList.remove('active');
+            document.getElementById('view-detail').classList.remove('active');
+            
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+
+            if (tab === 'list') {
+                document.getElementById('view-list').classList.add('active');
+                document.querySelectorAll('.nav-tab')[0].classList.add('active');
+                loadData();
+            } else if (tab === 'write') {
+                document.getElementById('view-write').classList.add('active');
+                document.querySelectorAll('.nav-tab')[1].classList.add('active');
+            }
+        }
+
+        // --- 5. 数据交互 ---
+        async function loadData() {
+            const container = document.getElementById('diary-container');
+            const loader = document.getElementById('loader');
+            const password = sessionStorage.getItem('diaryPassword');
+
+            if (!password) return;
+
+            // 模拟本地预览
+            if (location.protocol === 'file:' || location.hostname === 'localhost') {
+                // ... 本地测试代码 ...
+            }
+
+            try {
+                const res = await fetch('/.netlify/functions/getSummaries');
+                if (!res.ok) throw new Error('Auth failed');
+                allSummaries = await res.json();
+                
+                renderList(allSummaries);
+                loader.style.display = 'none';
+            } catch (e) {
+                loader.innerText = "加载失败或密码错误";
+                console.error(e);
+            }
+        }
+
+        function renderList(data) {
+            const container = document.getElementById('diary-container');
+            container.innerHTML = '';
+            
+            // 按日期倒序
+            data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'diary-item';
+                
+                const date = new Date(item.date);
+                const dateStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+                
+                // 提取纯文本预览
+                const rawText = item.summary.replace(/<[^>]*>/g, '');
+                const preview = rawText.substring(0, 60) + (rawText.length > 60 ? '...' : '');
+
+                div.innerHTML = `
+                    <span class="item-date">${dateStr}</span>
+                    <div class="item-preview">${preview || '(Image/Empty)'}</div>
+                `;
+                div.onclick = () => showDetail(item);
+                container.appendChild(div);
+            });
+        }
+
+        function showDetail(item) {
+            document.getElementById('view-list').classList.remove('active');
+            document.getElementById('view-detail').classList.add('active');
+            
+            const date = new Date(item.date);
+            document.getElementById('detail-title').innerText = `${date.getFullYear()}.${date.getMonth()+1}.${date.getDate()}`;
+            document.getElementById('detail-body').innerHTML = item.summary;
+            
+            const commentBox = document.getElementById('detail-comment');
+            if (item.gemini_response) {
+                commentBox.innerHTML = `<div class="teacher-note"><strong>AI Note:</strong><br>${item.gemini_response}</div>`;
+            } else {
+                commentBox.innerHTML = '';
+            }
+        }
+
+        async function submitDiary() {
+            const password = sessionStorage.getItem('diaryPassword');
+            const content = quill.root.innerHTML;
+            const btn = document.querySelector('.submit-fab');
+            
+            if (quill.getText().trim().length < 1) return alert("Empty content!");
+
+            btn.disabled = true;
+            btn.innerText = "...";
+
+            try {
+                const res = await fetch('/.netlify/functions/submitSummary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, summary: content })
+                });
+                if (!res.ok) throw new Error('Submit failed');
+                
+                quill.setContents([]);
+                switchTab('list');
+            } catch (e) {
+                alert("Error: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "+";
+            }
+        }
+
+        // --- 6. 工具函数: 时间与天气 ---
+        function updateTime() {
+            const now = new Date();
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const html = `
+                ${now.getDate()}
+                <span>${monthNames[now.getMonth()]}. ${now.getFullYear()}</span>
+            `;
+            document.getElementById('current-date').innerHTML = html;
+        }
+
+        async function getWeather() {
+            // 使用 Open-Meteo (免费, 无需 Key)
+            // 默认定位到东京 (可以改成浏览器定位)
+            // 既然是日语学习, 默认东京很合理, 或者用浏览器定位
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    fetchWeather(pos.coords.latitude, pos.coords.longitude);
+                }, () => {
+                    fetchWeather(35.6895, 139.6917); // 默认东京
+                });
+            } else {
+                fetchWeather(35.6895, 139.6917);
+            }
+        }
+
+        async function fetchWeather(lat, lon) {
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                const data = await res.json();
+                const temp = Math.round(data.current_weather.temperature);
+                const code = data.current_weather.weathercode;
+                
+                // 简单天气代码映射
+                let icon = "☁️";
+                if (code <= 1) icon = "☀️";
+                else if (code <= 3) icon = "⛅";
+                else if (code <= 67) icon = "t🌧️";
+                else if (code <= 99) icon = "⛈️";
+
+                document.getElementById('weather-temp').innerText = `${temp}°C`;
+                document.querySelector('.weather-icon').innerText = icon;
+            } catch (e) {
+                console.log("Weather error");
+            }
+        }
     </script>
 </body>
 </html>
