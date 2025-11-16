@@ -150,33 +150,48 @@
             let cardElementToDelete = null;
             const trashIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4H2.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>`;
 
-            // --- 加载头像逻辑 ---
+            // --- 【修改】加载头像逻辑 (方案 A) ---
             async function loadAvatar() {
                 try {
                     avatarLoader.classList.remove('hidden');
                     avatarImage.classList.add('hidden');
-                    let imageUrl;
+                    
+                    let imageData; // 将用于存储 Base64 数据
+                    
                     if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                         console.log("本地预览模式：模拟加载头像...");
                         await new Promise(resolve => setTimeout(resolve, 1500));
-                        imageUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%238B5CF6'/%3E%3Ctext x='50' y='60' font-size='30' fill='white' text-anchor='middle'%3E( ˘v˘ )%3C/text%3E%3C/svg%3E";
+                        imageData = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%238B5CF6'/%3E%3Ctext x='50' y='60' font-size='30' fill='white' text-anchor='middle'%3E( ˘v˘ )%3C/text%3E%3C/svg%3E";
                     } else {
-                        // 【路径正确】 /api/ 
                         const response = await fetch('/api/getAvatar');
                         if (!response.ok) {
-                            throw new Error('获取头像失败');
+                            // 尝试解析后端返回的 JSON 错误信息
+                            const err = await response.json();
+                            throw new Error(err.error || '获取头像失败');
                         }
                         const result = await response.json();
-                        imageUrl = result.imageUrl;
+                        
+                        // 【修改】我们现在获取的是 imageData (Base64 数据)
+                        imageData = result.imageData; 
+                        
+                        if (!imageData) {
+                            throw new Error('未从服务器获取到图像数据');
+                        }
                     }
-                    avatarImage.src = imageUrl;
+                    
+                    // 【修改】将 src 设置为 Base64 数据
+                    avatarImage.src = imageData; 
                     avatarImage.classList.remove('hidden'); 
                     avatarLoader.classList.add('hidden'); 
+                
                 } catch (error) {
                     console.error('加载头像失败:', error);
+                    // 【修改】使用占位符，并在登录框显示错误
                     avatarImage.src = 'https://placehold.co/120x120/331a4a/a975ff?text=Avatar';
                     avatarImage.classList.remove('hidden');
                     avatarLoader.classList.add('hidden');
+                    // 在登录框显示详细错误
+                    loginMessage.textContent = `❌ 头像加载失败: ${error.message}`;
                 }
             }
 
@@ -189,13 +204,16 @@
                 }
                 loginButton.disabled = true;
                 loginButton.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
-                loginMessage.textContent = '';
+                // 不清空头像错误
+                if (!loginMessage.textContent.includes('头像加载失败')) {
+                     loginMessage.textContent = '';
+                }
+               
                 try {
                     if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                         console.log("本地预览模式：模拟登录...");
                         await new Promise(resolve => setTimeout(resolve, 1000));
                     } else {
-                        // 【路径正确】 /api/
                         const response = await fetch('/api/checkPassword', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -228,13 +246,13 @@
                 }
             });
 
-            // --- 标签页切换 ---
+            // --- (标签页切换...与之前相同) ---
             function showViewSection(){sectionView.classList.remove('hidden');sectionSubmit.classList.add('hidden');tabView.classList.add('active','text-white');tabSubmit.classList.remove('active','text-white');tabSubmit.classList.add('text-gray-400');loadSummaries();}
             function showSubmitSection(){sectionView.classList.add('hidden');sectionSubmit.classList.remove('hidden');tabView.classList.remove('active','text-white');tabView.classList.add('text-gray-400');tabSubmit.classList.add('active','text-white');}
             tabView.addEventListener('click', showViewSection);
             tabSubmit.addEventListener('click', showSubmitSection);
 
-            // --- 加载总结逻辑 ---
+            // --- (加载总结逻辑...与之前相同) ---
             async function loadSummaries(){
                 loadingSpinner.classList.remove('hidden');
                 summaryGrid.innerHTML='';
@@ -254,7 +272,6 @@
                     return;
                 }
             
-                // 【路径正确】 /api/ 
                 try{
                     const response = await fetch('/api/getSummaries');
                     if(!response.ok){
@@ -277,7 +294,7 @@
                 }
             }
 
-            // --- 创建卡片 ---
+            // --- (创建卡片...与之前相同) ---
             function createCard(item){
                 const card=document.createElement('div');
                 card.className='summary-card glass-card rounded-xl p-6 shadow-lg relative';
@@ -286,7 +303,7 @@
                 summaryGrid.appendChild(card);
             }
 
-            // --- 表单提交 ---
+            // --- (表单提交...与之前相同) ---
             summaryForm.addEventListener('submit',async(e)=>{
                 e.preventDefault();
                 const password=sessionPassword;
@@ -302,7 +319,6 @@
                 }
                 
                 try{
-                    // 【路径正确】 /api/
                     const response = await fetch('/api/submitSummary', {
                         method:'POST',
                         headers:{'Content-Type':'application/json'},
@@ -324,14 +340,14 @@
                 }
             });
 
-            // --- 删除模态框逻辑 ---
+            // --- (删除模态框逻辑...与之前相同) ---
             function openConfirmModal(entryId,cardElement){entryIdToDelete=entryId;cardElementToDelete=cardElement;confirmDeleteModal.classList.remove('hidden');}
             function closeConfirmModal(){confirmDeleteModal.classList.add('hidden');confirmModalMessage.textContent='';entryIdToDelete=null;cardElementToDelete=null;confirmDeleteConfirmBtn.disabled=false;confirmDeleteConfirmBtn.innerHTML='<span>确认删除</span>';}
             confirmModalOverlay.addEventListener('click',closeConfirmModal);
         	confirmDeleteCancelBtn.addEventListener('click',closeConfirmModal);
             summaryGrid.addEventListener('click',(e)=>{const deleteButton=e.target.closest('.delete-btn');if(!deleteButton)return;openConfirmModal(deleteButton.dataset.id,deleteButton.closest('.summary-card'));});
 
-            // --- 确认删除逻辑 ---
+            // --- (确认删除逻辑...与之前相同) ---
             confirmDeleteConfirmBtn.addEventListener('click',async()=>{
                 const password=sessionPassword;
                 if(!password){confirmModalMessage.textContent='会话无效，请刷新重试';return;}
@@ -344,7 +360,6 @@
                     if(window.location.protocol.startsWith('blob')||window.location.protocol==='file:'){
                         console.log(`本地预览：模拟删除 ID: ${entryIdToDelete}`);await new Promise(resolve=>setTimeout(resolve,1000));
                     } else {
-                        // 【路径正确】 /api/
                         const response = await fetch('/api/deleteSummary',{
                             method:'POST',
                             headers:{'Content-Type':'application/json'},
@@ -376,4 +391,5 @@
     </script>
 </body>
 </html>
+
 
