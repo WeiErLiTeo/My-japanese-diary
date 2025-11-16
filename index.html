@@ -3,639 +3,518 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MY DIARY</title>
+    <title>日本語学習日誌</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Quill.js -->
+    <!-- Quill.js (保留) -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
-    <!-- 字体: Noto Sans JP (现代黑体) -->
+    <!-- (新!) 重新引入 Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+
+    <!-- 日系字体 (保留) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* --- 1. City Boy 风格配色 & 全局 --- */
-        :root {
-            --primary-blue: #0047AB; /* 克莱因蓝 */
-            --bg-grey: #F2F2F2;      /* 水泥灰背景 */
-            --paper-white: #FCFCFC;  /* 纸张白 */
-            --text-main: #333333;
-            --text-sub: #888888;
-        }
-
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background-color: var(--bg-grey);
-            color: var(--text-main);
-            height: 100vh;
+        /* --- 1. 全局和背景 (手账版) --- */
+        body { 
+            font-family: 'Zen Maru Gothic', sans-serif; 
+            background-color: #f0f2f5;
+            background-image: url('https://www.transparenttextures.com/patterns/subtle-white-feathers.png');
+            color: #333; 
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            perspective: 2000px; /* 3D 视距 */
+            /* (新!) 开启 3D 舞台 */
+            perspective: 2000px;
         }
 
-        /* --- 2. 3D 书本容器 --- */
-        .book-wrapper {
+        /* --- 2. (新!) 3D 书本容器 --- */
+        #book-container {
+            width: 95vw;
+            max-width: 800px;
+            min-height: 90vh;
             position: relative;
-            width: 380px;
-            height: 600px;
+            /* (新!) 开启 3D 空间 */
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        
-        /* 桌面端放大 */
-        @media (min-width: 768px) {
-            .book-wrapper {
-                width: 460px;
-                height: 680px;
-            }
+            transition: transform 0.5s;
         }
 
-        /* --- 3. 封面 (Cover) --- */
-        .cover {
+        /* --- 3. (新!) 磨砂透明封面 (A5 风格) --- */
+        #notebook-cover {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: var(--primary-blue);
-            border-radius: 4px 12px 12px 4px;
-            z-index: 10;
-            transform-origin: left center; /* 绕左轴旋转 */
-            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 20;
+            
+            /* (新!) 磨砂透明塑料风格 */
+            background-color: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            cursor: pointer;
+            
+            /* (新!) 3D 翻页动画设置 */
+            transform-origin: left center;
             transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1.000);
-            cursor: pointer;
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.2);
             
-            /* 封面设计 */
+            /* 封面上的 A5 标签 (模仿 KKV) */
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 40px;
-            color: white;
-        }
-
-        .cover-title {
-            font-size: 3rem;
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: -1px;
-        }
-        
-        .cover-subtitle {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 10px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .cover-footer {
-            font-size: 0.8rem;
-            opacity: 0.6;
-            border-top: 1px solid rgba(255,255,255,0.3);
-            padding-top: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* 封面的背面 (翻开后看到的左侧) */
-        .cover-back {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: #fff;
-            border-radius: 4px 12px 12px 4px;
-            transform: rotateY(180deg); /* 背面 */
-            backface-visibility: hidden; /* 只有翻过来才看到 */
-            z-index: 9;
-            border-right: 1px solid #eee;
-        }
-        /* 我们用伪元素模拟封面背面的质感，但为了简单，我们只让它变白 */
-        .cover::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #f0f0f0;
-            transform: rotateY(180deg) translateZ(1px);
-            border-radius: 4px 12px 12px 4px;
-            backface-visibility: hidden;
-        }
-
-
-        /* --- 4. 内页 (Page) --- */
-        .page {
-            position: absolute;
-            top: 2px; left: 0;
-            width: 99%; height: 99%; /* 稍微比封面小一点 */
-            background-color: var(--paper-white);
-            border-radius: 2px 10px 10px 2px;
-            z-index: 5;
-            box-shadow: inset 3px 0 10px rgba(0,0,0,0.05); /* 书脊阴影 */
-            
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        /* --- 状态控制 --- */
-        /* 翻开书本 */
-        body.book-opened .cover {
-            transform: rotateY(-180deg);
-        }
-        /* 翻开后，书本整体稍微右移，居中显示内页 */
-        body.book-opened .book-wrapper {
-            transform: translateX(180px);
-        }
-        @media (max-width: 768px) {
-            body.book-opened .book-wrapper {
-                transform: translateX(0); /* 手机上不平移，直接看内页 */
-            }
-            body.book-opened .cover {
-                /* 手机上封面彻底消失，避免遮挡 */
-                opacity: 0; 
-                pointer-events: none;
-            }
-        }
-
-        /* --- 5. 内页布局 (Header & Content) --- */
-        .page-header {
-            padding: 20px 25px;
-            border-bottom: 2px solid #f0f0f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff;
-        }
-        
-        .date-display {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--text-main);
-            line-height: 1;
-        }
-        .date-display span {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-sub);
-            display: block;
-            margin-top: 4px;
-        }
-
-        .weather-widget {
-            text-align: right;
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-        .weather-icon { font-size: 1.2rem; margin-bottom: 2px; }
-
-        .page-content {
-            flex: 1;
-            overflow-y: auto; /* 内容滚动 */
-            padding: 0;
-            position: relative;
-            background-image: radial-gradient(#e0e0e0 1px, transparent 1px); /* 点阵纸 */
-            background-size: 20px 20px;
-        }
-
-        /* 滚动条隐藏 */
-        .page-content::-webkit-scrollbar { width: 4px; }
-        .page-content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-
-        /* --- 6. 密码层 --- */
-        #auth-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(5px);
-            z-index: 50;
-            display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.3s;
         }
-        .hidden-layer {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .auth-input {
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid #000;
+        
+        .a5-label {
+            background: white;
+            width: 200px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             text-align: center;
-            font-size: 1.5rem;
-            width: 150px;
-            padding: 5px;
-            outline: none;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
-        .auth-btn {
-            margin-top: 20px;
-            background: #000;
-            color: #fff;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            cursor: pointer;
+            border-top: 5px solid #fbd38d; /* 黄色顶部 */
         }
 
-        /* --- 7. 侧边标签 (Tabs) --- */
-        .tabs-container {
+        /* (新!) 翻页动画 */
+        .book-open #notebook-cover {
+            transform: rotateY(-180deg);
+            pointer-events: none; /* 翻开后不可点击 */
+            /* 隐藏封面 (翻过去后) */
+            opacity: 0;
+        }
+
+
+        /* --- 4. 活页笔记本内页 (手账版) --- */
+        #notebook-inside {
             position: absolute;
-            right: 0;
-            top: 80px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 40;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: #ffffff; /* 纯白内页 */
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px 30px 60px 60px; /* 左侧留空给活页环 */
+            
+            /* (保留) CSS 绘制活页环 */
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent, transparent 19px, #ccc 19px, #ccc 20px, 
+                transparent 20px, transparent 39px, #fff 39px, #fff 40px
+            );
+            background-position: left 20px top 0px;
+            background-repeat: repeat-y;
+            background-size: 30px 100%;
+            
+            border-left: 30px solid #fff; 
+            line-height: 30px;
+            
+            /* (新!) 放在封底下层 */
+            z-index: 10;
+            overflow-y: auto; /* 内页可滚动 */
         }
-        .nav-tab {
-            background: #333;
-            color: #fff;
-            padding: 8px 12px 8px 16px;
-            border-radius: 4px 0 0 4px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: -2px 2px 5px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            transform: translateX(5px); /* 默认收起一点 */
-        }
-        .nav-tab.active {
-            background: var(--primary-blue);
-            transform: translateX(-2px);
-        }
-        .nav-tab:hover { transform: translateX(-5px); }
-
-        /* --- 8. 内容列表 & 写作区 --- */
-        .section { padding: 20px 25px; display: none; }
-        .section.active { display: block; animation: slideUp 0.4s ease; }
         
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* 日记卡片 */
-        .diary-item {
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            cursor: pointer;
-            transition: all 0.2s;
+        /* (保留) 活页孔上的红线 */
+        #notebook-inside::before {
+            content: ''; position: absolute; left: 45px; top: 0; bottom: 0;
+            width: 2px; background-color: rgba(255, 0, 0, 0.2);
         }
-        .diary-item:hover { transform: translateY(-2px); border-color: var(--primary-blue); }
-        .item-date { font-size: 0.75rem; color: #999; font-weight: 600; margin-bottom: 5px; display: block; }
-        .item-preview { font-size: 0.95rem; color: #333; line-height: 1.5; }
         
-        /* 编辑器调整 */
-        #editor-container { height: 350px; border: none !important; font-size: 1rem; background: transparent; }
-        .ql-toolbar { border: none !important; border-bottom: 1px solid #eee !important; padding: 8px !important; }
-        .ql-container { border: none !important; }
-        
-        /* 提交按钮 */
-        .submit-fab {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary-blue);
-            color: white;
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0,71,171,0.3);
-            cursor: pointer;
-            transition: transform 0.2s;
-            border: none;
-            font-size: 1.5rem;
+        /* (保留) 模拟活页孔 */
+        #notebook-inside::after {
+            content: ''; position: absolute; left: -15px; top: 20px;
+            bottom: 20px; width: 10px;
+            background-image: radial-gradient(#f0f2f5 3px, transparent 4px);
+            background-size: 10px 40px;
+            background-position: center;
         }
-        .submit-fab:hover { transform: scale(1.1) rotate(90deg); }
 
-        /* 详情页 */
-        .detail-view { display: none; padding: 20px 25px; }
-        .detail-view.active { display: block; }
-        .detail-body { margin-top: 20px; line-height: 1.8; color: #333; }
-        .back-btn { font-size: 0.8rem; color: #999; cursor: pointer; margin-bottom: 10px; display: inline-block; }
 
-        /* AI 点评 (极简版) */
-        .teacher-note {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-left: 3px solid var(--primary-blue);
-            font-size: 0.9rem;
-            color: #555;
-        }
+        /* --- 5. UI 元素 (手账 "デコ" 风格) (保留) --- */
+        /* (所有便利贴、剪贴簿卡片、手写风字体、印章按钮... 全部保留) */
+        h2 { font-size: 1.5rem; display: inline-block; margin-bottom: 1.5rem; padding-bottom: 0.5rem; }
+        .handwritten-input { background: transparent; border: none; border-bottom: 2px dashed #888; width: 100%; font-family: 'Zen Maru Gothic', sans-serif; font-size: 1.1rem; color: #333; padding: 5px 10px; outline: none; transition: border-color 0.3s; text-align: center; }
+        .handwritten-input:focus { border-bottom: 2px solid #333; }
+        .sticky-tabs { position: absolute; right: 0px; top: 50px; display: flex; flex-direction: column; gap: 15px; z-index: 30; }
+        .sticky-tab { background-color: #a0d8ef; color: #2c5282; padding: 8px 15px; border-radius: 5px 0 0 5px; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); transition: all 0.2s; font-size: 0.9rem; font-weight: bold; position: relative; right: 0; transform: rotate(-2deg); }
+        .sticky-tab:nth-child(2) { background-color: #fbd38d; color: #744210; transform: rotate(1deg); }
+        .sticky-tab.active { transform: translateX(-10px) rotate(0deg); box-shadow: -2px 2px 5px rgba(0,0,0,0.1); }
+        .sticky-tab:hover { transform: translateX(-5px) rotate(0deg); }
+        .diary-entry { background: #fafafa; border: 1px solid #eee; box-shadow: 3px 3px 8px rgba(0,0,0,0.08); margin-bottom: 40px; position: relative; padding: 20px; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
+        .diary-entry:nth-child(odd) { transform: rotate(1deg); }
+        .diary-entry:nth-child(even) { transform: rotate(-1.5deg); }
+        .diary-entry:hover { transform: rotate(0deg) scale(1.02); box-shadow: 5px 5px 15px rgba(0,0,0,0.1); z-index: 10; }
+        .diary-date { font-size: 0.9rem; color: #4A5568; font-weight: bold; display: block; margin-bottom: 5px; }
+        .teacher-comment { background-color: #fefcbf; border-left: 5px solid #fbd38d; margin-top: 15px; padding: 10px 15px; border-radius: 0 5px 5px 0; font-size: 0.9rem; transform: rotate(1deg); box-shadow: 1px 1px 3px rgba(0,0,0,0.05); }
+        #editor-container { height: 300px; font-family: 'Zen Maru Gothic', sans-serif; font-size: 1.1rem; }
+        .ql-toolbar { border-bottom: 1px solid #ccc !important; }
+        .ql-container { border: 1px solid #eee !important; border-radius: 5px; }
+        .stamp-btn { background-color: #e74c3c; color: white; border: none; border-radius: 50% 50% 5px 50%; padding: 10px 30px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; display: inline-block; margin-top: 20px; }
+        .stamp-btn:hover { transform: scale(1.05) rotate(-2deg); }
+        .stamp-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .login-btn { background-color: #4A5568; color: white; border: none; border-radius: 8px; padding: 10px 30px; font-family: 'Zen Maru Gothic', sans-serif; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); transition: all 0.2s; display: inline-block; margin-top: 30px; }
+        .login-btn:hover { transform: scale(1.05); box-shadow: 2px 5px 15px rgba(0,0,0,0.2); }
+
+        .hidden-section { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     </style>
 </head>
 <body>
 
-    <div class="book-wrapper" id="book">
-        
-        <!-- 封面 -->
-        <div class="cover" onclick="flipOpen()">
-            <div>
-                <div class="cover-title">MY<br>DIARY</div>
-                <div class="cover-subtitle">DAILY LOG & STUDY</div>
+    <!-- (新!) 3D 书本容器 -->
+    <div id="book-container">
+
+        <!-- 1. (新!) 磨砂透明封面 -->
+        <div id="notebook-cover" onclick="openBook()">
+            <div class="a5-label">
+                <h1 class="text-3xl font-bold text-gray-800">A5</h1>
+                <p class="text-sm text-gray-600 mt-2">ソフトリングノート</p>
+                <p class="text-xs text-gray-500 mt-4">(Soft Ring Notebook)</p>
             </div>
-            <div class="cover-footer">
-                <span>NO. 01</span>
-                <span>JAPANESE LEARNING</span>
-            </div>
-            <!-- 伪元素模拟封面背面 -->
-            <div class="cover-back"></div> 
         </div>
 
-        <!-- 内页 -->
-        <div class="page">
+        <!-- 2. 活页笔记本内页 (包含所有页面) -->
+        <main id="notebook-inside">
             
-            <!-- 页面头部: 日期 + 天气 -->
-            <div class="page-header">
-                <div class="date-display" id="current-date">
-                    16
-                    <span>NOV. 2025</span>
-                </div>
-                <div class="weather-widget" id="weather-box">
-                    <span class="weather-icon">☁️</span>
-                    <span id="weather-temp">Loading...</span>
-                    <span id="weather-loc" style="font-size: 0.7rem; opacity: 0.5;">Tokyo</span>
-                </div>
+            <!-- (新!) 便利贴导航 (默认隐藏) -->
+            <div class="sticky-tabs hidden" id="nav-tabs">
+                <div class="sticky-tab active" id="tab-view" onclick="switchTab('view')">見る</div>
+                <div class="sticky-tab" id="tab-write" onclick="switchTab('write')">書く</div>
+            </div>
+            
+            <!-- A. 密码页 (默认显示在内页) -->
+            <div id="page-login" class="h-full flex flex-col justify-center items-center text-center pt-20">
+                <h2 class="mb-10">合言葉を教えてください</h2>
+                <form id="login-form" class="w-full max-w-xs">
+                    <input type="password" id="login-password" class="handwritten-input" placeholder="Password" required>
+                    <button type="submit" class="login-btn mt-10">開く</button>
+                    <p id="login-message" class="mt-4 text-red-700 text-sm"></p>
+                </form>
             </div>
 
-            <!-- 侧边导航 (便利贴) -->
-            <div class="tabs-container" id="nav-tabs">
-                <div class="nav-tab active" onclick="switchTab('list')">LIST</div>
-                <div class="nav-tab" onclick="switchTab('write')">ADD</div>
+            <!-- B. 列表页 (List Page) (默认隐藏) -->
+            <div id="page-list" class="hidden-section">
+                <h2 class="ml-4">私の学習記録</h2>
+                <div id="loading-spinner" class="text-center py-10 hidden"> <p>読み込み中...</p> </div>
+                <div id="diary-list-container">
+                    <!-- 日记卡片会插入到这里 -->
+                </div>
+                <p id="no-summaries" class="text-center text-gray-400 mt-10 hidden">まだ記録がありません。<br>右の「書く」タブから始めましょう。</p>
             </div>
 
-            <!-- 密码层 -->
-            <div id="auth-layer">
-                <div style="text-align: center;">
-                    <p style="font-size: 0.8rem; color: #999; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Security Check</p>
-                    <input type="password" id="auth-input" class="auth-input" placeholder="CODE">
-                    <br>
-                    <button class="auth-btn" onclick="checkPass()">ENTER</button>
-                    <p id="auth-msg" style="margin-top: 10px; color: red; font-size: 0.8rem;"></p>
-                </div>
-            </div>
-
-            <!-- 页面内容容器 -->
-            <div class="page-content">
-                
-                <!-- 1. 列表视图 -->
-                <div id="view-list" class="section active">
-                    <div id="diary-container">
-                        <!-- JS 填充日记 -->
-                    </div>
-                    <div id="loader" style="text-align: center; padding: 20px; color: #999;">Loading...</div>
-                </div>
-
-                <!-- 2. 写作视图 -->
-                <div id="view-write" class="section">
+            <!-- C. 写作页 (Write Page) (默认隐藏) -->
+            <div id="page-write" class="hidden-section">
+                <h2 class="ml-4">今日の記録</h2>
+                <form id="summary-form">
+                    <input type="password" id="admin-password" class="hidden" required>
                     <div id="editor-container"></div>
-                    <button class="submit-fab" onclick="submitDiary()">+</button>
-                </div>
-
-                <!-- 3. 详情视图 -->
-                <div id="view-detail" class="detail-view">
-                    <span class="back-btn" onclick="switchTab('list')">← BACK</span>
-                    <h2 id="detail-title" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 5px;"></h2>
-                    <div id="detail-body" class="detail-body prose"></div>
-                    <div id="detail-comment"></div>
-                </div>
-
+                    <div class="text-right mt-4">
+                        <button type="submit" id="submit-button" class="stamp-btn">保存する</button>
+                    </div>
+                    <div id="form-message" class="mt-4 text-center text-sm"></div>
+                </form>
             </div>
-        </div>
-    </div>
+
+            <!-- D. 详情页 (Detail Page) (默认隐藏) -->
+            <div id="page-detail" class="hidden-section">
+                <button onclick="showListTab()" class="text-gray-500 mb-4 hover:underline">← 戻る</button>
+                <div id="detail-content-wrapper">
+                    <span id="detail-date" class.bind="diary-date text-xl mb-4"></span>
+                    <div id="detail-body" class="prose prose-lg" style="font-family: 'Zen Maru Gothic';">
+                        <!-- 内容 -->
+                    </div>
+                    <div id="detail-gemini-box">
+                        <!-- AI 点评 -->
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div> <!-- /#book-container -->
 
     <script>
-        let quill;
+        // --- 全局变量 (保留) ---
         let allSummaries = [];
+        let quill;
+        let isBookOpen = false; // (新!) 追踪书本状态
 
-        // --- 1. 初始化 ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // 更新时间
-            updateTime();
-            setInterval(updateTime, 60000);
+        // --- (新!) 翻页声音 ---
+        const paperSound = new Tone.NoiseSynth({
+            noise: { type: 'pink' },
+            envelope: { attack: 0.005, decay: 0.15, sustain: 0 }
+        }).toDestination();
+        paperSound.volume.value = -10;
+
+        // --- (新!) 开书动画 (合并版) ---
+        async function openBook() {
+            if (isBookOpen) return;
             
-            // 获取天气
-            getWeather();
+            try {
+                await Tone.start();
+                paperSound.triggerAttackRelease("0.2"); // 播放音效
+            } catch (e) {
+                console.warn("Tone.js 启动失败:", e);
+            }
 
-            // 初始化编辑器
+            document.body.classList.add('book-open'); // 触发 CSS 翻页
+            isBookOpen = true;
+            
+            // 检查登录
+            const storedPassword = sessionStorage.getItem('diaryPassword');
+            
+            // 延迟 0.5 秒，等待动画
+            setTimeout(() => {
+                if (storedPassword) {
+                    // 已登录：直接看列表
+                    document.getElementById('page-login').classList.add('hidden-section');
+                    document.getElementById('page-list').classList.remove('hidden-section');
+                    document.getElementById('nav-tabs').classList.remove('hidden');
+                    loadSummaries(); 
+                } else {
+                    // 未登录：显示密码页 (它已默认显示, 无需操作)
+                    document.getElementById('page-login').classList.add('fade-in');
+                }
+            }, 500); // 配合动画时间
+        }
+
+        // --- 导航切换 (保留) ---
+        function switchTab(tabName) {
+            document.getElementById('page-list').classList.add('hidden-section');
+            document.getElementById('page-write').classList.add('hidden-section');
+            document.getElementById('page-detail').classList.add('hidden-section');
+            document.getElementById('tab-view').classList.remove('active');
+            document.getElementById('tab-write').classList.remove('active');
+
+            if (tabName === 'view') {
+                document.getElementById('page-list').classList.remove('hidden-section');
+                document.getElementById('page-list').classList.add('fade-in');
+                document.getElementById('tab-view').classList.add('active');
+                loadSummaries(); 
+            } else if (tabName === 'write') {
+                document.getElementById('page-write').classList.remove('hidden-section');
+                document.getElementById('page-write').classList.add('fade-in');
+                document.getElementById('tab-write').classList.add('active');
+            }
+        }
+
+        // --- 显示详情页 (保留) ---
+        function showDetail(dateId) {
+            const item = allSummaries.find(s => s.date === dateId);
+            if (!item) return;
+
+            document.getElementById('page-list').classList.add('hidden-section');
+            document.getElementById('page-detail').classList.remove('hidden-section');
+            document.getElementById('page-detail').classList.add('fade-in');
+            document.getElementById('nav-tabs').classList.add('hidden'); // 详情页隐藏便利贴
+
+            const dateStr = new Date(item.date).toLocaleString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+            document.getElementById('detail-date').textContent = dateStr;
+            document.getElementById('detail-body').innerHTML = item.summary;
+
+            const geminiBox = document.getElementById('detail-gemini-box');
+            if (item.gemini_response) {
+                geminiBox.innerHTML = `<div class="teacher-comment"><strong>先生のコメント：</strong><br>${item.gemini_response}</div>`;
+            } else {
+                geminiBox.innerHTML = '';
+            }
+        }
+        
+        function showListTab() {
+             document.getElementById('nav-tabs').classList.remove('hidden'); // 恢复便利贴
+             switchTab('view');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 初始化编辑器 (保留) ---
             quill = new Quill('#editor-container', {
                 theme: 'snow',
-                placeholder: 'Write something...',
+                placeholder: '今日学んだことは...',
                 modules: {
-                    toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }]]
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['clean']
+                    ]
                 }
             });
 
-            // 检查登录状态 (如果已登录，翻开书后直接隐藏密码层)
-            if (sessionStorage.getItem('diaryPassword')) {
-                document.getElementById('auth-layer').style.display = 'none';
-                loadData();
-            }
+            // --- (新!) 登录处理 (在内页) ---
+            const loginForm = document.getElementById('login-form');
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const pwd = document.getElementById('login-password').value;
+                if (pwd) {
+                    sessionStorage.setItem('diaryPassword', pwd);
+                    
+                    // 隐藏登录页
+                    const loginPage = document.getElementById('page-login');
+                    loginPage.style.opacity = '0';
+                    loginPage.style.transition = 'opacity 0.5s';
+                    
+                    // 显示列表页
+                    setTimeout(() => {
+                        loginPage.classList.add('hidden-section');
+                        document.getElementById('page-list').classList.remove('hidden-section');
+                        document.getElementById('page-list').classList.add('fade-in');
+                        document.getElementById('nav-tabs').classList.remove('hidden'); // 显示便利贴
+                        loadSummaries();
+                    }, 500);
+                }
+            });
+
+            // --- 提交日记处理 (保留) ---
+            const summaryForm = document.getElementById('summary-form');
+            summaryForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const password = sessionStorage.getItem('diaryPassword');
+                const summaryHtml = quill.root.innerHTML;
+                
+                if (quill.getText().trim().length === 0) {
+                    alert("内容を入力してください (请输入内容)");
+                    return;
+                }
+
+                const submitBtn = document.getElementById('submit-button');
+                const msgBox = document.getElementById('form-message');
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = "保存中...";
+                msgBox.textContent = "";
+
+                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
+                    await new Promise(r => setTimeout(r, 1000));
+                    if (password !== '123') {
+                        msgBox.textContent = "パスワードが違います (密码错误)";
+                        msgBox.className = "mt-4 text-center text-red-500";
+                    } else {
+                        alert("保存しました！(模拟成功)");
+                        quill.setContents([]);
+                        switchTab('view');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "保存する";
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/.netlify/functions/submitSummary', {
+                        method: 'POST',
+                        headers: { 'ContentType': 'application/json' },
+                        body: JSON.stringify({ password, summary: summaryHtml })
+                    });
+                    
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.error || 'Error');
+                    }
+
+                    alert("保存しました！先生のコメントを待っています...");
+                    quill.setContents([]); 
+                    switchTab('view'); 
+
+                } catch (error) {
+                    console.error(error);
+                    if (error.message.includes('密码') || error.message.includes('401')) {
+                        msgBox.textContent = "パスワードが間違っています。リロードしてください。";
+                        sessionStorage.removeItem('diaryPassword');
+                    } else {
+                        msgBox.textContent = "エラーが発生しました: " + error.message;
+                    }
+                    msgBox.className = "mt-4 text-center text-red-500";
+                } finally {
+                    submitBtn.disabled = false;
+                    submitButton.textContent = "保存する";
+                }
+            });
+            
+            // (新!) 移除 DOMContentLoaded 里的登录检查
+            // (它现在被 openBook() 函数处理)
         });
 
-        // --- 2. 翻书动画 ---
-        function flipOpen() {
-            document.body.classList.add('book-opened');
-        }
+        // --- 加载数据逻辑 (保留) ---
+        async function loadSummaries() {
+            const listContainer = document.getElementById('diary-list-container');
+            const spinner = document.getElementById('loading-spinner');
+            const noData = document.getElementById('no-summaries');
 
-        // --- 3. 密码验证 ---
-        function checkPass() {
-            const input = document.getElementById('auth-input');
-            const msg = document.getElementById('auth-msg');
-            if (!input.value) return;
-            
-            // 简单前端暂存，真实验证在后端
-            sessionStorage.setItem('diaryPassword', input.value);
-            
-            // 淡出密码层
-            const layer = document.getElementById('auth-layer');
-            layer.style.opacity = '0';
-            setTimeout(() => {
-                layer.style.display = 'none';
-                loadData(); // 尝试加载数据
-            }, 300);
-        }
+            listContainer.innerHTML = '';
+            spinner.classList.remove('hidden');
+            noData.classList.add('hidden');
 
-        // --- 4. 导航切换 ---
-        function switchTab(tab) {
-            // 隐藏所有
-            document.getElementById('view-list').classList.remove('active');
-            document.getElementById('view-write').classList.remove('active');
-            document.getElementById('view-detail').classList.remove('active');
-            
-            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-
-            if (tab === 'list') {
-                document.getElementById('view-list').classList.add('active');
-                document.querySelectorAll('.nav-tab')[0].classList.add('active');
-                loadData();
-            } else if (tab === 'write') {
-                document.getElementById('view-write').classList.add('active');
-                document.querySelectorAll('.nav-tab')[1].classList.add('active');
-            }
-        }
-
-        // --- 5. 数据交互 ---
-        async function loadData() {
-            const container = document.getElementById('diary-container');
-            const loader = document.getElementById('loader');
-            const password = sessionStorage.getItem('diaryPassword');
-
-            if (!password) return;
-
-            // 模拟本地预览
-            if (location.protocol === 'file:' || location.hostname === 'localhost') {
-                // ... 本地测试代码 ...
+            if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
+                await new Promise(r => setTimeout(r, 800));
+                allSummaries = [
+                    { date: new Date().toISOString(), summary: "<p>今日は日本語の勉強を始めました。漢字が難しいですが、頑張ります。</p>", gemini_response: "素晴らしいスタートですね！毎日少しずつ続けましょう。" },
+                    { date: new Date(Date.now() - 86400000).toISOString(), summary: "<p>N3の文法「～に対して」を復習しました。</p>", gemini_response: null }
+                ];
+                renderList();
+                spinner.classList.add('hidden');
+                return;
             }
 
             try {
                 const res = await fetch('/.netlify/functions/getSummaries');
-                if (!res.ok) throw new Error('Auth failed');
+                if (!res.ok) throw new Error('Failed');
                 allSummaries = await res.json();
-                
-                renderList(allSummaries);
-                loader.style.display = 'none';
+                renderList();
             } catch (e) {
-                loader.innerText = "加载失败或密码错误";
                 console.error(e);
-            }
-        }
-
-        function renderList(data) {
-            const container = document.getElementById('diary-container');
-            container.innerHTML = '';
-            
-            // 按日期倒序
-            data.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'diary-item';
-                
-                const date = new Date(item.date);
-                const dateStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
-                
-                // 提取纯文本预览
-                const rawText = item.summary.replace(/<[^>]*>/g, '');
-                const preview = rawText.substring(0, 60) + (rawText.length > 60 ? '...' : '');
-
-                div.innerHTML = `
-                    <span class="item-date">${dateStr}</span>
-                    <div class="item-preview">${preview || '(Image/Empty)'}</div>
-                `;
-                div.onclick = () => showDetail(item);
-                container.appendChild(div);
-            });
-        }
-
-        function showDetail(item) {
-            document.getElementById('view-list').classList.remove('active');
-            document.getElementById('view-detail').classList.add('active');
-            
-            const date = new Date(item.date);
-            document.getElementById('detail-title').innerText = `${date.getFullYear()}.${date.getMonth()+1}.${date.getDate()}`;
-            document.getElementById('detail-body').innerHTML = item.summary;
-            
-            const commentBox = document.getElementById('detail-comment');
-            if (item.gemini_response) {
-                commentBox.innerHTML = `<div class="teacher-note"><strong>AI Note:</strong><br>${item.gemini_response}</div>`;
-            } else {
-                commentBox.innerHTML = '';
-            }
-        }
-
-        async function submitDiary() {
-            const password = sessionStorage.getItem('diaryPassword');
-            const content = quill.root.innerHTML;
-            const btn = document.querySelector('.submit-fab');
-            
-            if (quill.getText().trim().length < 1) return alert("Empty content!");
-
-            btn.disabled = true;
-            btn.innerText = "...";
-
-            try {
-                const res = await fetch('/.netlify/functions/submitSummary', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password, summary: content })
-                });
-                if (!res.ok) throw new Error('Submit failed');
-                
-                quill.setContents([]);
-                switchTab('list');
-            } catch (e) {
-                alert("Error: " + e.message);
+                noData.textContent = "読み込みに失敗しました。";
+                noData.classList.remove('hidden');
             } finally {
-                btn.disabled = false;
-                btn.innerText = "+";
+                spinner.classList.add('hidden');
             }
         }
 
-        // --- 6. 工具函数: 时间与天气 ---
-        function updateTime() {
-            const now = new Date();
-            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-            const html = `
-                ${now.getDate()}
-                <span>${monthNames[now.getMonth()]}. ${now.getFullYear()}</span>
-            `;
-            document.getElementById('current-date').innerHTML = html;
-        }
+        // --- 渲染列表 (保留) ---
+        function renderList() {
+            const listContainer = document.getElementById('diary-list-container');
+            const noData = document.getElementById('no-summaries');
+            
+            if (!allSummaries || allSummaries.length === 0) {
+                noData.classList.remove('hidden');
+                return;
+            }
 
-        async function getWeather() {
-            // 使用 Open-Meteo (免费, 无需 Key)
-            // 默认定位到东京 (可以改成浏览器定位)
-            // 既然是日语学习, 默认东京很合理, 或者用浏览器定位
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                    fetchWeather(pos.coords.latitude, pos.coords.longitude);
-                }, () => {
-                    fetchWeather(35.6895, 139.6917); // 默认东京
+            allSummaries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            allSummaries.forEach(item => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'diary-entry fade-in';
+                entryDiv.onclick = () => showDetail(item.date);
+
+                const dateStr = new Date(item.date).toLocaleString('ja-JP', { 
+                    year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short' 
                 });
-            } else {
-                fetchWeather(35.6895, 139.6917);
-            }
-        }
-
-        async function fetchWeather(lat, lon) {
-            try {
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-                const data = await res.json();
-                const temp = Math.round(data.current_weather.temperature);
-                const code = data.current_weather.weathercode;
                 
-                // 简单天气代码映射
-                let icon = "☁️";
-                if (code <= 1) icon = "☀️";
-                else if (code <= 3) icon = "⛅";
-                else if (code <= 67) icon = "t🌧️";
-                else if (code <= 99) icon = "⛈️";
+                const plainText = item.summary.replace(/<[^>]*>?/gm, ' ').substring(0, 60) + '...';
 
-                document.getElementById('weather-temp').innerText = `${temp}°C`;
-                document.querySelector('.weather-icon').innerText = icon;
-            } catch (e) {
-                console.log("Weather error");
-            }
+                let teacherMark = '';
+                if (item.gemini_response) {
+                    teacherMark = `<span style="background: #fefcbf; color: #744210; font-size: 0.8rem; padding: 2px 5px; border-radius: 4px; margin-left: 10px; font-weight:bold;">先生</span>`;
+                }
+
+                entryDiv.innerHTML = `
+                    <span class="diary-date">${dateStr} ${teacherMark}</span>
+                    <div class="text-gray-700" style="font-size: 0.95rem;">${plainText}</div>
+                `;
+                
+                listContainer.appendChild(entryDiv);
+            });
         }
     </script>
 </body>
 </html>
+
+
