@@ -150,14 +150,12 @@
             let cardElementToDelete = null;
             const trashIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4H2.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>`;
 
-            // --- 【修改】加载头像逻辑 (方案 A) ---
+            // (加载头像逻辑...与之前相同)
             async function loadAvatar() {
                 try {
                     avatarLoader.classList.remove('hidden');
                     avatarImage.classList.add('hidden');
-                    
-                    let imageData; // 将用于存储 Base64 数据
-                    
+                    let imageData; 
                     if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                         console.log("本地预览模式：模拟加载头像...");
                         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -165,37 +163,28 @@
                     } else {
                         const response = await fetch('/api/getAvatar');
                         if (!response.ok) {
-                            // 尝试解析后端返回的 JSON 错误信息
                             const err = await response.json();
                             throw new Error(err.error || '获取头像失败');
                         }
                         const result = await response.json();
-                        
-                        // 【修改】我们现在获取的是 imageData (Base64 数据)
                         imageData = result.imageData; 
-                        
                         if (!imageData) {
                             throw new Error('未从服务器获取到图像数据');
                         }
                     }
-                    
-                    // 【修改】将 src 设置为 Base64 数据
                     avatarImage.src = imageData; 
                     avatarImage.classList.remove('hidden'); 
                     avatarLoader.classList.add('hidden'); 
-                
                 } catch (error) {
                     console.error('加载头像失败:', error);
-                    // 【修改】使用占位符，并在登录框显示错误
                     avatarImage.src = 'https://placehold.co/120x120/331a4a/a975ff?text=Avatar';
                     avatarImage.classList.remove('hidden');
                     avatarLoader.classList.add('hidden');
-                    // 在登录框显示详细错误
                     loginMessage.textContent = `❌ 头像加载失败: ${error.message}`;
                 }
             }
 
-            // --- 登录逻辑 ---
+            // (登录逻辑...与之前相同)
             async function handleLogin() {
                 const password = loginPasswordInput.value;
                 if (!password) {
@@ -204,11 +193,9 @@
                 }
                 loginButton.disabled = true;
                 loginButton.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
-                // 不清空头像错误
                 if (!loginMessage.textContent.includes('头像加载失败')) {
                      loginMessage.textContent = '';
                 }
-               
                 try {
                     if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                         console.log("本地预览模式：模拟登录...");
@@ -252,7 +239,7 @@
             tabView.addEventListener('click', showViewSection);
             tabSubmit.addEventListener('click', showSubmitSection);
 
-            // --- (加载总结逻辑...与之前相同) ---
+            // --- 【修改】加载总结逻辑 (前端也增加检查) ---
             async function loadSummaries(){
                 loadingSpinner.classList.remove('hidden');
                 summaryGrid.innerHTML='';
@@ -260,12 +247,10 @@
                 deleteMessage.textContent='';
                 
                 if(window.location.protocol.startsWith('blob')||window.location.protocol==='file:'){
+                    // ... (模拟代码不变) ...
                     console.log("本地预览模式：正在加载模拟数据...");
                     await new Promise(resolve=>setTimeout(resolve,1000));
-                    const mockSummaries=[
-                        { date: new Date().toISOString(), summary: "【模拟数据】今天学习了 N2 语法「～ものだから」，感觉很有趣。", gemini_response: "素晴らしい！その調子で頑張って！" },
-                        { date: new Date(Date.now() - 86400000).toISOString(), summary: "【模拟数据】复习了 N3 的动词变形。", gemini_response: "基本は大事ですね。よくできました！" }
-                    ];
+                    const mockSummaries=[ { date: new Date().toISOString(), summary: "【模拟数据】...", gemini_response: "..." }];
                     if(mockSummaries.length===0){ noSummaries.classList.remove('hidden'); }
                     else { mockSummaries.forEach(item=>{ createCard(item); }); }
                     loadingSpinner.classList.add('hidden');
@@ -279,6 +264,17 @@
                         throw new Error(err.error || `HTTP error! status: ${response.status}`);
                     }
                     const summaries = await response.json();
+
+                    // --- 【新增的健壮性检查】 ---
+                    // 确保我们从后端收到的是一个列表
+                    if (!Array.isArray(summaries)) {
+                        console.error("前端收到的日记数据不是一个列表 (Array)!");
+                        noSummaries.classList.remove('hidden');
+                        loadingSpinner.classList.add('hidden');
+                        return; 
+                    }
+                    // --- 检查结束 ---
+
                     if(summaries.length === 0){
                         noSummaries.classList.remove('hidden');
                     } else {
