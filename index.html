@@ -1,214 +1,180 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>日语学习日记 | 每日记录</title>
+    <!-- 加载 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Quill.js (保留) -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-
+    <!-- 引入自定义样式和动画 -->
     <style>
-        /* 导入字体 (保留) */
+        /* 使用更适合的字体，Inter 是一个很棒的现代字体 */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         
-        /* 1. 新的“梦幻”实时渐变背景 */
-        body { 
-            font-family: 'Inter', 'Noto Sans JP', sans-serif; 
-            color: #2D3748; 
-            
-            /* 柔和的日系粉彩渐变 */
-            background: linear-gradient(-45deg, 
-                #FFDAB9, /* 蜜桃 (Peach) */
-                #E6E6FA, /* 薰衣草 (Lavender) */
-                #B0E0E6, /* 天空蓝 (Powder Blue) */
-                #FFC0CB  /* 樱花粉 (Pink) */
-            );
-            /* 让渐变动起来的关键 */
-            background-size: 400% 400%;
-            animation: gradientAnimation 20s ease infinite;
+        body {
+            font-family: 'Inter', 'Noto Sans JP', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            /* 流畅的背景渐变动画 */
+            background: linear-gradient(120deg, #1e0033, #3f004a, #1a0b38);
+            background-size: 200% 200%;
+            animation: gradientBG 20s ease infinite;
         }
 
-        /* 2. 实时渐变动画 */
-        @keyframes gradientAnimation {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
+        /* 渐变动画 */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        /* 3. 保留“无印良品”风格的白色卡片 (确保可读性) */
-        .content-card { 
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s;
+        /* "玻璃拟态" 卡片样式 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05); /* 半透明背景 */
+            backdrop-filter: blur(12px); /* 关键的毛玻璃效果 */
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1); /* 微妙的边框 */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 平滑过渡 */
         }
-        .content-card:hover { 
-            transform: translateY(-6px); 
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); 
+        .glass-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
         }
-        .summary-card { cursor: pointer; }
 
-        /* 4. 保留简洁的 UI 元素颜色 (石板蓝) */
-        .header-title { color: #1A202C; font-weight: 700; }
-        .header-subtitle { color: #4A5568; }
-        .tab-button.active { color: white; background-color: #4A5568; }
-        .tab-button { color: #718096; }
-        .form-input { background: #F7FAFC; border: 1px solid #CBD5E0; color: #2D3748; }
-        .form-input:focus { background: #FFFFFF; border-color: #4A5568; box-shadow: 0 0 0 2px rgba(74, 85, 104, 0.3); }
-        .btn-primary { background-color: #4A5568; color: white; transition: 0.3s; }
-        .btn-primary:hover { background-color: #2D3748; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* (其他样式：动画、加载、登录框、Quill、内容渲染等... 全部保留不变) */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .summary-card, #section-detail { animation: fadeIn 0.5s ease-out forwards; }
-        .loader { border: 3px solid #E2E8F0; border-bottom-color: #4A5568; }
-        #login-modal { 
-            /* 登录框背景：半透明的柔和白色 */
-            background: rgba(247, 250, 252, 0.9); 
-            backdrop-filter: blur(10px); 
+        /* 标签栏激活状态 */
+        .tab-button.active {
+            color: white;
+            background-color: #8B5CF6; /* 紫色 */
         }
-        #editor-container { height: 250px; color: #2D3748; }
-        .ql-container { font-size: 1rem; }
-        .summary-content p { margin-bottom: 0.5rem; color: #4A5568; }
-        .summary-content strong { color: #1A202C; font-weight: 600; }
-        .summary-content em { color: #C05621; }
-        .summary-content ul, .summary-content ol { margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #4A5568; }
-        .summary-content li { margin-bottom: 0.25rem; }
-        .gemini-response {
-            margin-top: 1rem;
-            font-size: 0.875rem;
-            background-color: #EBF8FF; 
-            border-left: 3px solid #4299E1;
-            padding: 0.75rem;
-            color: #2C5282;
+
+        /* 表单输入框样式 */
+        .form-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: #8B5CF6; /* 焦点时紫色 */
+            box-shadow: 0 0 0 2px #8B5CF6;
+        }
+
+        /* 渐变按钮 */
+        .btn-gradient {
+            background-image: linear-gradient(to right, #8B5CF6 0%, #EC4899 51%, #8B5CF6 100%);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .btn-gradient:hover {
+            background-position: right center; /* 悬停时渐变移动 */
+        }
+        .btn-gradient:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-image: none;
+            background-color: #374151;
+        }
+
+        /* 卡片淡入动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .summary-card {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* 简单的加载动画 */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #FFF;
+            border-bottom-color: #8B5CF6;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="text-gray-800 min-h-screen p-4 md:p-8">
+<body class="text-gray-100 min-h-screen p-4 md:p-8">
 
-    <!-- 1. 背景幻灯片 HTML (已删除) -->
-    <!-- (没有 <div id="bg-slider"> 了, 背景现在由 <body> 控制) -->
-
-    <!-- 登录遮罩层 (不变) -->
-    <div id="login-modal">
-        <div class="content-card rounded-xl p-8 shadow-lg max-w-sm w-full mx-4">
-            <form id="login-form">
-                <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900">🔑 请输入密码</h2>
-                <div class="mb-5">
-                    <label for="login-password" class="block text-sm font-medium text-gray-700 mb-2">管理员密码</label>
-                    <input type="password" id="login-password" class="form-input w-full rounded-lg p-3" placeholder="请输入您的安全密码" required>
-                </div>
-                <button type="submit" class="btn-primary w-full text-white font-bold py-3 px-6 rounded-lg text-lg">
-                    <span>进入网站</span>
-                </button>
-                <p id="login-message" class="mt-4 text-center text-red-600"></p>
-            </form>
-        </div>
-    </div>
-
-    <!-- 页面标题 (不变) -->
-    <header class="text-center mb-10 relative z-10"> <!-- (添加 z-10 确保在背景之上) -->
-        <h1 class="header-title text-4xl md:text-5xl font-bold">
+    <!-- 1. 页面标题 -->
+    <header class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
             🌸 我的日语学习日记 🌸
         </h1>
-        <p class="header-subtitle text-lg mt-2">日々の記録、未来への投資。</p>
+        <p class="text-lg text-gray-300 mt-2">日々の記録、未来への投資。</p>
     </header>
 
-    <!-- 主区域 (不变) -->
-    <main class="max-w-4xl mx-auto hidden relative z-10" id="main-content"> <!-- (添加 z-10) -->
-        <!-- 标签页切换 (样式更新) -->
-        <div class="flex justify-center mb-8 bg-white/50 border border-gray-200/50 rounded-lg p-1 max-w-sm mx-auto">
+    <main class="max-w-4xl mx-auto">
+        <!-- 2. 标签页切换 -->
+        <div class="flex justify-center mb-8 bg-gray-800/50 rounded-lg p-1 max-w-sm mx-auto">
             <button id="tab-view" class="tab-button active w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">查看总结</button>
-            <button id="tab-submit" class="tab-button w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">提交新总结</button>
+            <button id="tab-submit" class="tab-button w-1/2 py-2 px-4 rounded-md font-medium text-gray-400 transition-all duration-300">提交新总结</button>
         </div>
 
-        <!-- 内容区域 (不变) -->
+        <!-- 3. 内容区域 -->
         <div>
-            <!-- 查看总结 (不变) -->
+            <!-- 3.1 查看总结 (默认显示) -->
             <section id="section-view">
                 <div id="loading-spinner" class="text-center py-10">
                     <div class="loader mx-auto"></div>
-                    <p class="mt-4 text-gray-500">正在加载日记...</p>
+                    <p class="mt-4 text-gray-400">正在加载日记...</p>
                 </div>
                 <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- 总结卡片将在这里动态插入 -->
+                    <!-- 示例卡片:
+                    <div class="summary-card glass-card rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-400 mb-2">2023年10月27日</p>
+                        <p class="text-gray-100 whitespace-pre-line">今天学习了 N2 语法「～ものだから」，感觉很有趣。</p>
+                        <p class="mt-4 text-sm text-purple-300">老师鼓励：素晴らしい！その調子で頑張って！</p>
+                    </div>
+                    -->
                 </div>
-                <p id="no-summaries" class="hidden text-center text-gray-500 py-10">还没有日记哦，快去“提交新总结”吧！</p>
+                <p id="no-summaries" class="hidden text-center text-gray-400 py-10">还没有日记哦，快去“提交新总结”吧！</p>
             </section>
 
-            <!-- 提交总结 (不变) -->
+            <!-- 3.2 提交总结 (默认隐藏) -->
             <section id="section-submit" class="hidden">
-                <div class="content-card rounded-xl p-6 md:p-10 shadow-lg max-w-lg mx-auto">
+                <div class="glass-card rounded-xl p-6 md:p-10 shadow-lg max-w-lg mx-auto">
                     <form id="summary-form">
-                        <h2 class="text-2xl font-semibold text-center mb-6 text-gray-900">📝 记录今日所学</h2>
-                        <input type="password" id="admin-password" class="hidden" required>
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">📖 学习内容</label>
-                            <div id="editor-container"></div>
+                        <h2 class="text-2xl font-semibold text-center mb-6">📝 记录今日所学</h2>
+                        
+                        <div class="mb-5">
+                            <label for="admin-password" class="block text-sm font-medium text-gray-300 mb-2">🔑 管理员密码</label>
+                            <input type="password" id="admin-password" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="请输入您的安全密码" required>
                         </div>
-                        <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold py-3 px-6 rounded-lg text-lg mt-6">
+                        
+                        <div class="mb-6">
+                            <label for="summary-content" class="block text-sm font-medium text-gray-300 mb-2">📖 学习内容</label>
+                            <textarea id="summary-content" rows="6" class="form-input w-full rounded-lg p-3 text-gray-100" placeholder="例如：今天学习了... 掌握了... 遇到的问题是..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" id="submit-button" class="btn-gradient w-full text-white font-bold py-3 px-6 rounded-lg text-lg">
                             <span>提交总结</span>
                         </button>
+                        
                         <div id="form-message" class="mt-4 text-center"></div>
                     </form>
                 </div>
             </section>
         </div>
-    </main
+    </main>
 
-    <!-- 详情区域 (不变) -->
-    <section id="section-detail" class="hidden max-w-3xl mx-auto relative z-10"> <!-- (添加 z-10) -->
-        <div class="content-card rounded-xl shadow-lg p-6 md:p-10">
-            <!-- 返回按钮 -->
-            <button id="back-to-list-button" class="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                返回列表
-            </button>
-            
-            <!-- 详情内容 (不变) -->
-            <p id="detail-date" class="text-sm text-gray-500 mb-4"></p>
-            <div id="detail-content" class="summary-content space-y-4">
-                <!-- 完整的日记内容 -->
-            </div>
-            <div id="detail-gemini" class="mt-6">
-                <!-- AI 点评 -->
-            </div>
-        </div>
-    </section>
-
-    <!-- 页脚 (不变) -->
-    <footer class="text-center text-gray-500 mt-16 pb-8 relative z-10"> <!-- (添加 z-10) -->
+    <footer class="text-center text-gray-500 mt-16 pb-8">
         <p>&copy; 2025 由 Gemini 强力驱动</p>
     </footer>
 
-    <!-- 核心 JavaScript 逻辑 (重大更新) -->
+    <!-- 4. 核心 JavaScript 逻辑 -->
     <script>
-        // 1. (已删除) japaneseImages 数组已删除
-        
-        let allSummaries = [];
-        let quill;
-
+        // 等待 DOM 加载完成
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- 元素获取 (不变) ---
-            const loginModal = document.getElementById('login-modal');
-            const loginForm = document.getElementById('login-form');
-            const loginPasswordInput = document.getElementById('login-password');
-            const loginMessage = document.getElementById('login-message');
-            const mainContent = document.getElementById('main-content');
-            
+            // --- 获取元素 ---
             const tabView = document.getElementById('tab-view');
             const tabSubmit = document.getElementById('tab-submit');
             const sectionView = document.getElementById('section-view');
@@ -217,127 +183,121 @@
             const summaryForm = document.getElementById('summary-form');
             const submitButton = document.getElementById('submit-button');
             const formMessage = document.getElementById('form-message');
-            const adminPasswordInput = document.getElementById('admin-password'); 
+            const passwordInput = document.getElementById('admin-password');
+            const contentInput = document.getElementById('summary-content');
             
             const summaryGrid = document.getElementById('summary-grid');
             const loadingSpinner = document.getElementById('loading-spinner');
             const noSummaries = document.getElementById('no-summaries');
 
-            const sectionDetail = document.getElementById('section-detail');
-            const backToListButton = document.getElementById('back-to-list-button');
-            const detailDate = document.getElementById('detail-date');
-            const detailContent = document.getElementById('detail-content');
-            const detailGemini = document.getElementById('detail-gemini');
-
-            // 2. (已删除) bgSlider 元素获取已删除
-
-            
-            // --- 初始化 Quill 编辑器 (不变) ---
-            quill = new Quill('#editor-container', {
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['clean']
-                    ]
-                },
-                theme: 'snow',
-                placeholder: '例如：今天学习了... 掌握了... 遇到的问题是...'
-            });
-
-            // --- 登录逻辑 (不变) ---
-            function checkLogin() { 
-                const storedPassword = sessionStorage.getItem('diaryPassword');
-                if (storedPassword) {
-                    loginModal.style.display = 'none';
-                    mainContent.classList.remove('hidden');
-                    loadSummaries();
-                } else {
-                    loginModal.style.display = 'flex';
-                    mainContent.classList.add('hidden');
-                }
-            }
-            loginForm.addEventListener('submit', (e) => { 
-                e.preventDefault();
-                const inputPassword = loginPasswordInput.value;
-                if (!inputPassword) {
-                    loginMessage.textContent = '请输入密码。';
-                    return;
-                }
-                sessionStorage.setItem('diaryPassword', inputPassword);
-                loginModal.style.opacity = '0';
-                setTimeout(() => { loginModal.style.display = 'none'; }, 300);
-                mainContent.classList.remove('hidden');
-                loadSummaries();
-            });
-            
-            // --- 导航/标签页切换逻辑 (不变) ---
-            function showViewSection() { 
-                mainContent.classList.remove('hidden');
-                sectionDetail.classList.add('hidden');
+            // --- 标签页切换逻辑 ---
+            function showViewSection() {
                 sectionView.classList.remove('hidden');
                 sectionSubmit.classList.add('hidden');
-                tabView.classList.add('active');
-                tabSubmit.classList.remove('active');
+                tabView.classList.add('active', 'text-white');
+                tabSubmit.classList.remove('active', 'text-white');
+                tabSubmit.classList.add('text-gray-400');
+                // 切换时重新加载总结
                 loadSummaries();
             }
-            function showSubmitSection() { 
-                mainContent.classList.remove('hidden');
-                sectionDetail.classList.add('hidden');
+            
+            function showSubmitSection() {
                 sectionView.classList.add('hidden');
                 sectionSubmit.classList.remove('hidden');
-                tabView.classList.remove('active');
-                tabSubmit.classList.add('active');
+                tabView.classList.remove('active', 'text-white');
+                tabView.classList.add('text-gray-400');
+                tabSubmit.classList.add('active', 'text-white');
             }
-            function showDetailView(itemDate) {
-                const item = allSummaries.find(s => s.date === itemDate);
-                if (!item) return;
 
-                mainContent.classList.add('hidden');
-                sectionDetail.classList.remove('hidden');
-                
-                const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
-                    year: 'numeric', month: 'long', day: 'numeric',
-                    hour: 'numeric', minute: 'numeric'
-                });
-                detailDate.textContent = formattedDate;
-                detailContent.innerHTML = item.summary || '';
-                
-                if (item.gemini_response) {
-                    detailGemini.innerHTML = `<div class="gemini-response">🤖 老师点评：${item.gemini_response}</div>`;
-                } else {
-                    detailGemini.innerHTML = '';
-                }
-            }
             tabView.addEventListener('click', showViewSection);
             tabSubmit.addEventListener('click', showSubmitSection);
-            backToListButton.addEventListener('click', showViewSection);
 
-
-            // --- 加载总结逻辑 (不变) ---
-            async function loadSummaries() { 
+            // --- 加载总结逻辑 ---
+            async function loadSummaries() {
                 loadingSpinner.classList.remove('hidden');
-                summaryGrid.innerHTML = ''; 
+                summaryGrid.innerHTML = ''; // 清空旧内容
                 noSummaries.classList.add('hidden');
 
+                // --- 本地预览模拟 ---
+                // 检查是否在本地预览环境 (如 blob: URL 或 file: URL)
                 if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
                     console.log("本地预览模式：正在加载模拟数据...");
+                    
+                    // 模拟网络延迟
                     await new Promise(resolve => setTimeout(resolve, 1000));
-                    allSummaries = [
-                        { date: new Date().toISOString(), summary: "<strong>【模拟数据】</strong><p>今天学习了 N2 语法「～ものだから」，感觉很有趣。</p>", gemini_response: "素晴らしい！その調子で頑張って！" },
-                        { date: new Date(Date.now() - 86400000).toISOString(), summary: "<p>【模拟数据】复习了 N3 的动词变形。</p>", gemini_response: "基本は大事ですね。よくできました！" }
+
+                    const mockSummaries = [
+                        { 
+                            date: new Date().toISOString(), 
+                            summary: "【模拟数据】今天学习了 N2 语法「～ものだから」，感觉很有趣。", 
+                            gemini_response: "素晴らしい！その調子で頑張って！" 
+                        },
+                        { 
+                            date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+                            summary: "【模拟数据】复习了 N3 的动词变形，特别是「使役形」和「受身形」。", 
+                            gemini_response: "基本は大事ですね。よくできました！"
+                        }
                     ];
-                    renderSummaries(allSummaries);
+
+                    if (mockSummaries.length === 0) {
+                        noSummaries.classList.remove('hidden');
+                    } else {
+                        mockSummaries.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
+                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
+                                year: 'numeric', month: 'long', day: 'numeric',
+                                hour: 'numeric', minute: 'numeric'
+                            });
+                            card.innerHTML = `
+                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
+                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
+                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
+                            `;
+                            summaryGrid.appendChild(card);
+                        });
+                    }
                     loadingSpinner.classList.add('hidden');
-                    return; 
+                    return; // 结束函数，不执行下面的真实 fetch
                 }
                 
+                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
                 try {
+                    // 这是 Netlify 函数的 "神奇" 路径
                     const response = await fetch('/.netlify/functions/getSummaries');
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    allSummaries = await response.json();
-                    renderSummaries(allSummaries); 
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const summaries = await response.json();
+                    
+                    if (summaries.length === 0) {
+                        noSummaries.classList.remove('hidden');
+                    } else {
+                        // 按日期倒序显示
+                        summaries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        
+                        summaries.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'summary-card glass-card rounded-xl p-6 shadow-lg';
+                            
+                            const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: 'numeric'
+                            });
+                            
+                            card.innerHTML = `
+                                <p class="text-sm text-gray-400 mb-2">${formattedDate}</p>
+                                <p class="text-gray-100 whitespace-pre-line">${item.summary}</p>
+                                ${item.gemini_response ? `<p class="mt-4 text-sm text-purple-300 border-l-2 border-purple-400 pl-3">🤖 老师点评：${item.gemini_response}</p>` : ''}
+                            `;
+                            summaryGrid.appendChild(card);
+                        });
+                    }
                 } catch (error) {
                     console.error('加载总结失败:', error);
                     noSummaries.textContent = '❌ 加载日记失败，请稍后重试。';
@@ -347,116 +307,81 @@
                 }
             }
 
-            // --- 渲染总结卡片 (不变) ---
-            function renderSummaries(summaries) {
-                summaryGrid.innerHTML = ''; 
-                if (!summaries || summaries.length === 0) {
-                    noSummaries.classList.remove('hidden');
-                } else {
-                    summaries.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    summaries.forEach(item => {
-                        const card = document.createElement('div');
-                        card.setAttribute('data-date-id', item.date);
-                        card.className = 'summary-card content-card rounded-xl shadow-lg flex flex-col p-6 transition-all duration-300';
-                        
-                        const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
-                            year: 'numeric', month: 'long', day: 'numeric'
-                        });
-                        
-                        const geminiTextHtml = item.gemini_response 
-                            ? `<div class="gemini-response">🤖 老师点评：${item.gemini_response}</div>` 
-                            : '';
-                        
-                        const plainTextSummary = item.summary.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
-                        const snippet = plainTextSummary.substring(0, 100) + (plainTextSummary.length > 100 ? '...' : '');
-
-                        card.innerHTML = `
-                            <p class="text-sm text-gray-500 mb-2">${formattedDate}</p>
-                            <div class="text-gray-700 summary-content-snippet flex-grow">
-                                <p>${snippet || '(空日记)'}</p>
-                            </div>
-                            ${geminiTextHtml}
-                        `;
-                        card.addEventListener('click', () => {
-                            showDetailView(item.date);
-                        });
-                        summaryGrid.appendChild(card);
-                    });
-                }
-            }
-
-            // --- 表单提交逻辑 (不变) ---
-            summaryForm.addEventListener('submit', async (e) => { 
-                e.preventDefault(); 
-                const storedPassword = sessionStorage.getItem('diaryPassword') || '';
-                adminPasswordInput.value = storedPassword;
-                const password = adminPasswordInput.value;
-                const summaryHtml = quill.root.innerHTML;
+            // --- 表单提交逻辑 ---
+            summaryForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // 阻止表单默认提交
                 
-                if (summaryHtml === '<p><br></p>' || summaryHtml.trim() === '') {
-                    formMessage.textContent = '❌ 学习内容不能为空。';
-                    formMessage.className = 'mt-4 text-center text-red-600';
-                    return;
-                }
+                const password = passwordInput.value;
+                const summary = contentInput.value;
                 
+                // 禁用按钮并显示加载中
                 submitButton.disabled = true;
+                submitButton.innerHTML = `<span class="loader" style="width:24px; height:24px; border-width: 2px;"></span>`;
                 formMessage.textContent = '';
-                formMessage.className = 'mt-4 text-center text-green-600';
+                formMessage.className = 'mt-4 text-center';
 
+                // --- 本地预览模拟 ---
+                if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
+                    console.log("本地预览模式：正在模拟提交...");
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // 模拟提交延迟
+                    
+                    // 模拟成功
+                    formMessage.textContent = '🎉 【模拟】提交成功！';
+                    formMessage.classList.add('text-green-400');
+                    contentInput.value = ''; // 清空输入框
+                    
+                    // 2秒后自动切换回查看页面
+                    setTimeout(() => {
+                        showViewSection();
+                        formMessage.textContent = '';
+                    }, 2000);
+
+                    // 恢复按钮
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<span>提交总结</span>';
+                    return; // 结束函数，不执行真实 fetch
+                }
+
+                // --- 真实的 Netlify Fetch (部署后会运行这里) ---
                 try {
-                    submitButton.innerHTML = `<span>提交总结...</span>`;
-
-                    if (window.location.protocol.startsWith('blob') || window.location.protocol === 'file:') {
-                        console.log("本地预览模式：正在模拟提交...", { password, summary: summaryHtml });
-                        await new Promise(resolve => setTimeout(resolve, 1500)); 
-                        if (password !== '123') { 
-                            formMessage.textContent = '❌ 【模拟】失败: 密码无效';
-                            formMessage.className = 'mt-4 text-center text-red-600';
-                        } else {
-                            formMessage.textContent = '🎉 【模拟】提交成功！';
-                            quill.setContents([{ insert: '\n' }]);
-                            setTimeout(() => { showViewSection(); formMessage.textContent = ''; }, 2000);
-                        }
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = '<span>提交总结</span>';
-                        return; 
-                    }
-
+                    // 调用 "submitSummary" 后端函数
                     const response = await fetch('/.netlify/functions/submitSummary', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password, summary: summaryHtml })
+                        body: JSON.stringify({ password, summary })
                     });
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.error || '提交失败');
                     
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        // 处理后端返回的错误（如密码错误）
+                        throw new Error(result.error || '提交失败');
+                    }
+                    
+                    // 成功!
                     formMessage.textContent = '🎉 提交成功！已生成 AI 点评。';
-                    quill.setContents([{ insert: '\n' }]);
-                    setTimeout(() => { showViewSection(); formMessage.textContent = ''; }, 2000);
+                    formMessage.classList.add('text-green-400');
+                    contentInput.value = ''; // 清空输入框
+                    
+                    // 2秒后自动切换回查看页面
+                    setTimeout(() => {
+                        showViewSection();
+                        formMessage.textContent = '';
+                    }, 2000);
 
                 } catch (error) {
                     console.error('提交失败:', error);
-                    if (error.message.includes('密码无效')) {
-                        loginMessage.textContent = '密码错误！请刷新页面重试。';
-                        loginModal.style.display = 'flex'; 
-                        loginModal.style.opacity = '1';
-                        sessionStorage.removeItem('diaryPassword');
-                    } else {
-                        formMessage.textContent = `❌ 失败: ${error.message}`;
-                    }
-                    formMessage.className = 'mt-4 text-center text-red-600';
+                    formMessage.textContent = `❌ 失败: ${error.message}`;
+                    formMessage.classList.add('text-red-400');
                 } finally {
+                    // 恢复按钮
                     submitButton.disabled = false;
                     submitButton.innerHTML = '<span>提交总结</span>';
                 }
             });
 
-            // --- 3. (已删除) initBackgroundSlider() 函数已删除 ---
-
             // --- 初始加载 ---
-            checkLogin();
-            // (不再需要调用幻灯片函数)
-            
+            loadSummaries();
         });
     </script>
 </body>
