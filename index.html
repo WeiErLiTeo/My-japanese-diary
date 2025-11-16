@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN"> <!-- 移除了 dark 类 -->
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,60 +14,40 @@
         /* 导入字体 (保留) */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         
-        /* 1. 新的 UI 风格: 明亮、简约 */
+        /* 1. 新的“梦幻”实时渐变背景 */
         body { 
             font-family: 'Inter', 'Noto Sans JP', sans-serif; 
-            /* 新的纸张背景色 */
-            background-color: #F7FAFC; 
-            /* 新的默认文字颜色 */
             color: #2D3748; 
+            
+            /* 柔和的日系粉彩渐变 */
+            background: linear-gradient(-45deg, 
+                #FFDAB9, /* 蜜桃 (Peach) */
+                #E6E6FA, /* 薰衣草 (Lavender) */
+                #B0E0E6, /* 天空蓝 (Powder Blue) */
+                #FFC0CB  /* 樱花粉 (Pink) */
+            );
+            /* 让渐变动起来的关键 */
+            background-size: 400% 400%;
+            animation: gradientAnimation 20s ease infinite;
         }
 
-        /* 2. 新的背景幻灯片 (Bug 修复) */
-        #bg-slider {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -2;
-            overflow: hidden;
-            background-color: #F7FAFC; /* 确保背景不是黑色 */
-        }
-        .bg-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center center;
-            /* 关键：平滑的淡入淡出过渡 (2秒) */
-            transition: opacity 2s ease-in-out; 
-            opacity: 0;
-        }
-        .bg-image.active {
-            opacity: 1;
-        }
-        /* 蒙版：现在是一个非常淡的白色蒙版，让图片更柔和 */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            /* 从深紫色改为浅白色渐变 */
-            background: linear-gradient(rgba(247, 250, 252, 0.5), rgba(247, 250, 252, 0.85));
-            z-index: -1;
+        /* 2. 实时渐变动画 */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
-        /* 3. 新的卡片风格: 纸张 + 阴影 */
+        /* 3. 保留“无印良品”风格的白色卡片 (确保可读性) */
         .content-card { 
-            /* 移除玻璃特效 */
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
-            /* 添加柔和、自然的阴影 */
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             transition: all 0.3s;
         }
@@ -77,98 +57,49 @@
         }
         .summary-card { cursor: pointer; }
 
-        /* 4. 新的 UI 元素颜色 */
-        /* 标题: 移除渐变, 改为纯黑 */
-        .header-title {
-            color: #1A202C;
-            font-weight: 700;
-        }
-        .header-subtitle {
-            color: #4A5568;
-        }
-        /* 标签页: 移除紫色, 改为石板蓝 */
-        .tab-button.active { 
-            color: white; 
-            background-color: #4A5568; /* 新的强调色 */
-        }
-        .tab-button {
-            color: #718096; /* 默认文字颜色 */
-        }
-        /* 表单: 浅色主题 */
-        .form-input { 
-            background: #F7FAFC; /* 浅色背景 */
-            border: 1px solid #CBD5E0; /* 浅色边框 */
-            color: #2D3748; /* 深色文字 */
-        }
-        .form-input:focus { 
-            background: #FFFFFF; 
-            border-color: #4A5568; /* 新的强调色 */
-            box-shadow: 0 0 0 2px rgba(74, 85, 104, 0.3); 
-        }
-        /* 按钮: 移除渐变, 改为石板蓝 */
-        .btn-primary { 
-            background-color: #4A5568; /* 新的强调色 */
-            color: white;
-            transition: 0.3s; 
-        }
-        .btn-primary:hover { 
-            background-color: #2D3748; /* 变深 */
-        }
-        .btn-primary:disabled { 
-            opacity: 0.5; 
-            cursor: not-allowed; 
-        }
-        /* 动画 (保留) */
+        /* 4. 保留简洁的 UI 元素颜色 (石板蓝) */
+        .header-title { color: #1A202C; font-weight: 700; }
+        .header-subtitle { color: #4A5568; }
+        .tab-button.active { color: white; background-color: #4A5568; }
+        .tab-button { color: #718096; }
+        .form-input { background: #F7FAFC; border: 1px solid #CBD5E0; color: #2D3748; }
+        .form-input:focus { background: #FFFFFF; border-color: #4A5568; box-shadow: 0 0 0 2px rgba(74, 85, 104, 0.3); }
+        .btn-primary { background-color: #4A5568; color: white; transition: 0.3s; }
+        .btn-primary:hover { background-color: #2D3748; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* (其他样式：动画、加载、登录框、Quill、内容渲染等... 全部保留不变) */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .summary-card, #section-detail { animation: fadeIn 0.5s ease-out forwards; }
-        .loader { 
-            border: 3px solid #E2E8F0; /* 浅灰色 */
-            border-bottom-color: #4A5568; /* 强调色 */
-        }
-        /* 登录框: 浅色主题 */
+        .loader { border: 3px solid #E2E8F0; border-bottom-color: #4A5568; }
         #login-modal { 
-            background: rgba(247, 250, 252, 0.9); /* 浅色背景 */
+            /* 登录框背景：半透明的柔和白色 */
+            background: rgba(247, 250, 252, 0.9); 
             backdrop-filter: blur(10px); 
         }
-        
-        /* 5. Quill 编辑器: 恢复默认 (亮色) */
-        /* (移除所有自定义的 .ql- 暗色主题样式) */
         #editor-container { height: 250px; color: #2D3748; }
-        .ql-container {
-            font-size: 1rem;
-        }
-
-        /* 6. 内容渲染: 浅色主题 */
+        .ql-container { font-size: 1rem; }
         .summary-content p { margin-bottom: 0.5rem; color: #4A5568; }
         .summary-content strong { color: #1A202C; font-weight: 600; }
-        .summary-content em { color: #C05621; /* 暖色调 (赤褐色) */ }
+        .summary-content em { color: #C05621; }
         .summary-content ul, .summary-content ol { margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #4A5568; }
         .summary-content li { margin-bottom: 0.25rem; }
-
-        /* 7. Gemini 点评: 浅色主题 */
         .gemini-response {
             margin-top: 1rem;
             font-size: 0.875rem;
-            /* 浅蓝色背景 + 蓝色边框 */
             background-color: #EBF8FF; 
             border-left: 3px solid #4299E1;
             padding: 0.75rem;
-            color: #2C5282; /* 深蓝色文字 */
+            color: #2C5282;
         }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen p-4 md:p-8">
 
-    <!-- 2. 新的背景幻灯片 HTML (Bug 修复) -->
-    <div id="bg-slider">
-        <!-- 4 张新的、明亮的图片 -->
-        <div class="bg-image" style="background-image: url('https://images.pexels.com/photos/208537/pexels-photo-208537.jpeg');"></div> <!-- 竹林 -->
-        <div class="bg-image" style="background-image: url('https://images.pexels.com/photos/161251/senso-ji-temple-japan-kyoto-161251.jpeg');"></div> <!-- 浅草寺 -->
-        <div class="bg-image" style="background-image: url('https://images.pexels.com/photos/1371306/pexels-photo-1371306.jpeg');"></div> <!-- 禅院 -->
-        <div class="bg-image" style="background-image: url('https://images.pexels.com/photos/1034940/pexels-photo-1034940.jpeg');"></div> <!-- 茶道 -->
-    </div>
+    <!-- 1. 背景幻灯片 HTML (已删除) -->
+    <!-- (没有 <div id="bg-slider"> 了, 背景现在由 <body> 控制) -->
 
-    <!-- 登录遮罩层 (变为浅色主题) -->
+    <!-- 登录遮罩层 (不变) -->
     <div id="login-modal">
         <div class="content-card rounded-xl p-8 shadow-lg max-w-sm w-full mx-4">
             <form id="login-form">
@@ -177,7 +108,6 @@
                     <label for="login-password" class="block text-sm font-medium text-gray-700 mb-2">管理员密码</label>
                     <input type="password" id="login-password" class="form-input w-full rounded-lg p-3" placeholder="请输入您的安全密码" required>
                 </div>
-                <!-- 按钮样式更新 -->
                 <button type="submit" class="btn-primary w-full text-white font-bold py-3 px-6 rounded-lg text-lg">
                     <span>进入网站</span>
                 </button>
@@ -186,8 +116,8 @@
         </div>
     </div>
 
-    <!-- 页面标题 (样式更新) -->
-    <header class="text-center mb-10">
+    <!-- 页面标题 (不变) -->
+    <header class="text-center mb-10 relative z-10"> <!-- (添加 z-10 确保在背景之上) -->
         <h1 class="header-title text-4xl md:text-5xl font-bold">
             🌸 我的日语学习日记 🌸
         </h1>
@@ -195,14 +125,14 @@
     </header>
 
     <!-- 主区域 (不变) -->
-    <main class="max-w-4xl mx-auto hidden" id="main-content">
+    <main class="max-w-4xl mx-auto hidden relative z-10" id="main-content"> <!-- (添加 z-10) -->
         <!-- 标签页切换 (样式更新) -->
         <div class="flex justify-center mb-8 bg-white/50 border border-gray-200/50 rounded-lg p-1 max-w-sm mx-auto">
             <button id="tab-view" class="tab-button active w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">查看总结</button>
             <button id="tab-submit" class="tab-button w-1/2 py-2 px-4 rounded-md font-medium transition-all duration-300">提交新总结</button>
         </div>
 
-        <!-- 内容区域 -->
+        <!-- 内容区域 (不变) -->
         <div>
             <!-- 查看总结 (不变) -->
             <section id="section-view">
@@ -210,14 +140,13 @@
                     <div class="loader mx-auto"></div>
                     <p class="mt-4 text-gray-500">正在加载日记...</p>
                 </div>
-                <!-- 卡片样式更新 -->
                 <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- 总结卡片将在这里动态插入 -->
                 </div>
                 <p id="no-summaries" class="hidden text-center text-gray-500 py-10">还没有日记哦，快去“提交新总结”吧！</p>
             </section>
 
-            <!-- 提交总结 (样式更新) -->
+            <!-- 提交总结 (不变) -->
             <section id="section-submit" class="hidden">
                 <div class="content-card rounded-xl p-6 md:p-10 shadow-lg max-w-lg mx-auto">
                     <form id="summary-form">
@@ -225,10 +154,8 @@
                         <input type="password" id="admin-password" class="hidden" required>
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">📖 学习内容</label>
-                            <!-- Quill 编辑器 (将使用默认亮色主题) -->
                             <div id="editor-container"></div>
                         </div>
-                        <!-- 按钮样式更新 -->
                         <button type="submit" id="submit-button" class="btn-primary w-full text-white font-bold py-3 px-6 rounded-lg text-lg mt-6">
                             <span>提交总结</span>
                         </button>
@@ -237,10 +164,10 @@
                 </div>
             </section>
         </div>
-    </main>
+    </main
 
-    <!-- 详情区域 (样式更新) -->
-    <section id="section-detail" class="hidden max-w-3xl mx-auto">
+    <!-- 详情区域 (不变) -->
+    <section id="section-detail" class="hidden max-w-3xl mx-auto relative z-10"> <!-- (添加 z-10) -->
         <div class="content-card rounded-xl shadow-lg p-6 md:p-10">
             <!-- 返回按钮 -->
             <button id="back-to-list-button" class="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-all">
@@ -250,31 +177,25 @@
                 返回列表
             </button>
             
-            <!-- 详情内容 (样式更新) -->
+            <!-- 详情内容 (不变) -->
             <p id="detail-date" class="text-sm text-gray-500 mb-4"></p>
             <div id="detail-content" class="summary-content space-y-4">
                 <!-- 完整的日记内容 -->
             </div>
             <div id="detail-gemini" class="mt-6">
-                <!-- AI 点评 (将使用 .gemini-response 样式) -->
+                <!-- AI 点评 -->
             </div>
         </div>
     </section>
 
     <!-- 页脚 (不变) -->
-    <footer class="text-center text-gray-500 mt-16 pb-8">
+    <footer class="text-center text-gray-500 mt-16 pb-8 relative z-10"> <!-- (添加 z-10) -->
         <p>&copy; 2025 由 Gemini 强力驱动</p>
     </footer>
 
     <!-- 核心 JavaScript 逻辑 (重大更新) -->
     <script>
-        // 1. 日系风格背景图片 (新的明亮图片)
-        const japaneseImages = [
-            'https://images.pexels.com/photos/208537/pexels-photo-208537.jpeg', // 竹林
-            'https://images.pexels.com/photos/161251/senso-ji-temple-japan-kyoto-161251.jpeg', // 浅草寺
-            'https://images.pexels.com/photos/1371306/pexels-photo-1371306.jpeg', // 禅院
-            'https://images.pexels.com/photos/1034940/pexels-photo-1034940.jpeg'  // 茶道
-        ];
+        // 1. (已删除) japaneseImages 数组已删除
         
         let allSummaries = [];
         let quill;
@@ -308,13 +229,10 @@
             const detailContent = document.getElementById('detail-content');
             const detailGemini = document.getElementById('detail-gemini');
 
-            // 2. 新的幻灯片元素
-            const bgSlider = document.getElementById('bg-slider');
-            // (动态创建, 或从 HTML 中获取)
-            // 我们在 HTML 中创建它们, 这里就不需要了
+            // 2. (已删除) bgSlider 元素获取已删除
 
             
-            // --- 初始化 Quill 编辑器 (恢复默认亮色) ---
+            // --- 初始化 Quill 编辑器 (不变) ---
             quill = new Quill('#editor-container', {
                 modules: {
                     toolbar: [
@@ -324,7 +242,7 @@
                         ['clean']
                     ]
                 },
-                theme: 'snow', // 默认亮色主题
+                theme: 'snow',
                 placeholder: '例如：今天学习了... 掌握了... 遇到的问题是...'
             });
 
@@ -360,7 +278,7 @@
                 sectionDetail.classList.add('hidden');
                 sectionView.classList.remove('hidden');
                 sectionSubmit.classList.add('hidden');
-                tabView.classList.add('active'); // (简化了类)
+                tabView.classList.add('active');
                 tabSubmit.classList.remove('active');
                 loadSummaries();
             }
@@ -387,7 +305,6 @@
                 detailContent.innerHTML = item.summary || '';
                 
                 if (item.gemini_response) {
-                    // (使用新的样式)
                     detailGemini.innerHTML = `<div class="gemini-response">🤖 老师点评：${item.gemini_response}</div>`;
                 } else {
                     detailGemini.innerHTML = '';
@@ -430,7 +347,7 @@
                 }
             }
 
-            // --- 渲染总结卡片 (样式更新) ---
+            // --- 渲染总结卡片 (不变) ---
             function renderSummaries(summaries) {
                 summaryGrid.innerHTML = ''; 
                 if (!summaries || summaries.length === 0) {
@@ -440,14 +357,12 @@
                     summaries.forEach(item => {
                         const card = document.createElement('div');
                         card.setAttribute('data-date-id', item.date);
-                        // (使用新的卡片样式)
                         card.className = 'summary-card content-card rounded-xl shadow-lg flex flex-col p-6 transition-all duration-300';
                         
                         const formattedDate = new Date(item.date).toLocaleString('zh-CN', { 
                             year: 'numeric', month: 'long', day: 'numeric'
                         });
                         
-                        // (使用新的点评样式)
                         const geminiTextHtml = item.gemini_response 
                             ? `<div class="gemini-response">🤖 老师点评：${item.gemini_response}</div>` 
                             : '';
@@ -486,7 +401,7 @@
                 
                 submitButton.disabled = true;
                 formMessage.textContent = '';
-                formMessage.className = 'mt-4 text-center text-green-600'; // 默认成功色
+                formMessage.className = 'mt-4 text-center text-green-600';
 
                 try {
                     submitButton.innerHTML = `<span>提交总结...</span>`;
@@ -536,32 +451,11 @@
                 }
             });
 
-            // --- 3. 新的幻灯片逻辑 (Bug 修复) ---
-            function initBackgroundSlider() {
-                const bgImages = bgSlider.querySelectorAll('.bg-image');
-                let currentImageIndex = 0;
-
-                // 设置初始图片 (图片已在 HTML 中用 style 定义)
-                if (bgImages.length > 0) {
-                    bgImages[currentImageIndex].classList.add('active');
-                }
-
-                setInterval(() => {
-                    // 移除当前 active 类
-                    bgImages[currentImageIndex].classList.remove('active');
-                    
-                    // 计算下一个
-                    currentImageIndex = (currentImageIndex + 1) % bgImages.length;
-                    
-                    // 添加 active 类到下一个
-                    bgImages[currentImageIndex].classList.add('active');
-
-                }, 10000); // 10 秒切换一次, 2秒淡入, 8秒显示
-            }
+            // --- 3. (已删除) initBackgroundSlider() 函数已删除 ---
 
             // --- 初始加载 ---
             checkLogin();
-            initBackgroundSlider(); // 启动背景幻灯片
+            // (不再需要调用幻灯片函数)
             
         });
     </script>
